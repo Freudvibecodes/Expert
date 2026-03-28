@@ -127,7 +127,8 @@ function getBestVoice() {
 
 function speakText(text, cb) {
   if (!window.speechSynthesis) { cb && cb(); return; }
-  const utt = new SpeechSynthesisUtterance(text);
+  const spokenText = text.replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
+  const utt = new SpeechSynthesisUtterance(spokenText);
   const voice = getBestVoice();
   if (voice) utt.voice = voice;
   utt.rate = 0.88;
