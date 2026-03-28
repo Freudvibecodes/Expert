@@ -1,15 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 
-const ELEVENLABS_VOICES = [
-  { id: "EXAVITQu4vr4xnSDxMaL", label: "Sarah" },
-  { id: "TX3LPaxmHKxFdv7VOQHJ", label: "Liam" },
-  { id: "XB0fDUnXU5powFXDhCwa", label: "Charlotte" },
-  { id: "pqHfZKP75CvOlQylNhV4", label: "Bill" },
-  { id: "jsCqWAovK2LkecY7zXl4", label: "Freya" },
-  { id: "ZQe5CZNOzWyzPSCn5a3c", label: "James" },
-];
-
 const MODALITIES = [
   "SFBT","CBT","Narrative Therapy","Adlerian Therapy","Structural Family Therapy",
   "Person-Centred Therapy","DBT","ACT","Psychodynamic Therapy","EFT","Gestalt Therapy",
@@ -84,11 +75,11 @@ Your personality: ${personality}
 Rules:
 1. Reveal your presenting problem gradually — in small natural pieces, the way a real client would. Never dump it all at once.
 2. Keep responses short — 1 to 4 sentences. Real clients do not monologue.
-3. React authentically to question quality. Great open question = open up more. Closed question = short answer. Clumsy or leading question = feel slightly put off.
+3. React authentically to question quality. Great open question means open up more. Closed question means short answer. Clumsy or leading question means feel slightly put off.
 4. Show emotional complexity — hesitation, deflection, moments of vulnerability followed by pulling back.
 5. Never break character. You are the client throughout the entire session.
 6. When the therapist closes the session properly, respond naturally as a client would. Do not initiate the ending yourself.
-7. Speak only words the client would say out loud. Absolutely no asterisks, no stage directions, no narration like *shifts in chair* or *pauses*. Pure spoken dialogue only.;
+7. Speak only words the client would say out loud. No asterisks, no stage directions, no narration like shifts in chair or pauses. Pure spoken dialogue only.`;
 }
 
 async function callAPI(endpoint, body) {
@@ -108,9 +99,44 @@ async function callAPI(endpoint, body) {
 function Typing() {
   return (
     <div className="typing">
-      <div className="tdot" /><div className="tdot" /><div className="tdot" />
+      <div className="tdot" />
+      <div className="tdot" />
+      <div className="tdot" />
     </div>
   );
+}
+
+function getBestVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = [
+    "Google UK English Female",
+    "Google US English",
+    "Microsoft Aria Online (Natural)",
+    "Microsoft Jenny Online (Natural)",
+    "Microsoft Guy Online (Natural)",
+    "Samantha",
+    "Karen",
+    "Daniel",
+  ];
+  for (const name of preferred) {
+    const v = voices.find(v => v.name === name);
+    if (v) return v;
+  }
+  return voices.find(v => v.lang.startsWith("en") && !v.name.toLowerCase().includes("compact")) || null;
+}
+
+function speakText(text, cb) {
+  if (!window.speechSynthesis) { cb && cb(); return; }
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  const voice = getBestVoice();
+  if (voice) utt.voice = voice;
+  utt.rate = 0.88;
+  utt.pitch = 1.05;
+  utt.volume = 1;
+  utt.onend = cb;
+  utt.onerror = cb;
+  window.speechSynthesis.speak(utt);
 }
 
 // ── SETUP ─────────────────────────────────────────────────────
@@ -140,59 +166,59 @@ function SetupScreen({ onStart }) {
       </div>
       <div className="card">
         <div className="tabs">
-          <button className={`tab${mode === "group" ? " active" : ""}`} onClick={() => setMode("group")}>Group Supervision</button>
-          <button className={`tab${mode === "solo" ? " active" : ""}`} onClick={() => setMode("solo")}>Solo Practice</button>
+          <button className={"tab" + (mode === "group" ? " active" : "")} onClick={() => setMode("group")}>Group Supervision</button>
+          <button className={"tab" + (mode === "solo" ? " active" : "")} onClick={() => setMode("solo")}>Solo Practice</button>
         </div>
 
         {mode === "group" && (
-          <>
+          <div>
             <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
-              Listen to your group session. Say <strong>"Hey Claude"</strong> at any point for live guidance. A full clinical review is generated at the end.
+              Listen to your group session. Say <strong>Hey Claude</strong> at any point for live guidance. A full clinical review is generated at the end.
             </p>
             <div className="field">
               <label>Modality being practised</label>
-              <select value={gModality} onChange={e => setGModality(e.target.value)}>
+              <select value={gModality} onChange={function(e) { setGModality(e.target.value); }}>
                 <option value="">Select modality...</option>
-                {MODALITIES.map(m => <option key={m}>{m}</option>)}
+                {MODALITIES.map(function(m) { return <option key={m}>{m}</option>; })}
               </select>
             </div>
             <div className="field">
               <label>Your role</label>
-              <select value={gRole} onChange={e => setGRole(e.target.value)}>
+              <select value={gRole} onChange={function(e) { setGRole(e.target.value); }}>
                 <option value="therapist">Therapist</option>
                 <option value="client">Client</option>
                 <option value="observer">Observer</option>
               </select>
             </div>
-          </>
+          </div>
         )}
 
         {mode === "solo" && (
-          <>
+          <div>
             <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
-              Practice solo. Claude plays a real client with a randomised voice and personality. Receive a full clinical review when you close the session.
+              Practice solo. Claude plays a real client with a randomised personality. Receive a full clinical review when you close the session.
             </p>
             <div className="field">
               <label>Modality to practise</label>
-              <select value={sModality} onChange={e => setSModality(e.target.value)}>
+              <select value={sModality} onChange={function(e) { setSModality(e.target.value); }}>
                 <option value="">Select modality...</option>
-                {MODALITIES.map(m => <option key={m}>{m}</option>)}
+                {MODALITIES.map(function(m) { return <option key={m}>{m}</option>; })}
               </select>
             </div>
             <div className="field">
               <label>Client presenting issue</label>
-              <select value={sIssue} onChange={e => setSIssue(e.target.value)}>
-                {ISSUES.map(i => <option key={i}>{i}</option>)}
+              <select value={sIssue} onChange={function(e) { setSIssue(e.target.value); }}>
+                {ISSUES.map(function(i) { return <option key={i}>{i}</option>; })}
               </select>
             </div>
             <div className="field">
               <label>Client response mode</label>
-              <select value={sRespMode} onChange={e => setSRespMode(e.target.value)}>
+              <select value={sRespMode} onChange={function(e) { setSRespMode(e.target.value); }}>
                 <option value="voice">Voice — client speaks responses aloud</option>
                 <option value="text">Text — client responds in writing</option>
               </select>
             </div>
-          </>
+          </div>
         )}
 
         <button className="btn primary" onClick={handleStart}>Begin session</button>
@@ -217,25 +243,25 @@ function GroupScreen({ config, onEnd }) {
   const silTimerRef = useRef(null);
   const transcriptRef = useRef([]);
 
-  const addLine = useCallback((text, type) => {
-    const line = { text, type, id: Date.now() + Math.random() };
-    transcriptRef.current = [...transcriptRef.current, line];
-    setTranscript([...transcriptRef.current]);
+  const addLine = useCallback(function(text, type) {
+    const line = { text: text, type: type, id: Date.now() + Math.random() };
+    transcriptRef.current = transcriptRef.current.concat([line]);
+    setTranscript(transcriptRef.current.slice());
   }, []);
 
-  const triggerResponse = useCallback(async () => {
+  const triggerResponse = useCallback(async function() {
     const q = qBufferRef.current.trim();
     qBufferRef.current = "";
     heyModeRef.current = false;
     if (!q) return;
     activeRef.current = false;
-    try { recRef.current?.stop(); } catch (e) {}
+    try { recRef.current.stop(); } catch(e) {}
     setDotState("responding");
     setIndText("Supervisor is thinking...");
     setIsResponding(true);
     setSupervisorReply("typing");
-    const ctx = transcriptRef.current.slice(-40).map(l => l.text).join("\n");
-    const msg = `Session transcript so far:\n${ctx || "(session just started)"}\n\nStudent just asked you: "${q}"`;
+    const ctx = transcriptRef.current.slice(-40).map(function(l) { return l.text; }).join("\n");
+    const msg = "Session transcript so far:\n" + (ctx || "(session just started)") + "\n\nStudent just asked you: \"" + q + "\"";
     try {
       const reply = await callAPI("/api/chat", {
         system: buildGroupSystem(config.modality, config.role),
@@ -243,28 +269,35 @@ function GroupScreen({ config, onEnd }) {
       });
       setSupervisorReply(reply);
       addLine("[Supervisor]: " + reply, "supervisor-line");
-      if (window.speechSynthesis) {
-        const utt = new SpeechSynthesisUtterance(reply);
-        utt.rate = 0.95;
-        utt.onend = done; utt.onerror = done;
-        window.speechSynthesis.speak(utt);
-      } else { done(); }
-    } catch { setSupervisorReply("Connection issue — please try again."); done(); }
-    function done() {
-      setIsResponding(false); setDotState("listening"); setIndText("Listening to session...");
+      speakText(reply, function() {
+        setIsResponding(false);
+        setDotState("listening");
+        setIndText("Listening to session...");
+        activeRef.current = true;
+        try { recRef.current.start(); } catch(e) {}
+      });
+    } catch(e) {
+      setSupervisorReply("Connection issue — please try again.");
+      setIsResponding(false);
+      setDotState("listening");
+      setIndText("Listening to session...");
       activeRef.current = true;
-      try { recRef.current?.start(); } catch (e) {}
+      try { recRef.current.start(); } catch(e) {}
     }
   }, [config, addLine]);
 
-  useEffect(() => {
+  useEffect(function() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { setIndText("Voice not supported — please use Chrome."); return; }
     const rec = new SR();
-    rec.continuous = true; rec.interimResults = true; rec.lang = "en-US";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = "en-US";
     recRef.current = rec;
-    rec.onresult = (e) => {
-      let interimText = "", finalText = "";
+
+    rec.onresult = function(e) {
+      let interimText = "";
+      let finalText = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
         else interimText += e.results[i][0].transcript;
@@ -285,7 +318,9 @@ function GroupScreen({ config, onEnd }) {
           qBufferRef.current = after.replace(/hey claude/gi, "").trim();
           clearTimeout(silTimerRef.current);
           silTimerRef.current = setTimeout(triggerResponse, 2200);
-        } else { addLine(cleaned, ""); }
+        } else {
+          addLine(cleaned, "");
+        }
       } else {
         addLine(cleaned, "");
         qBufferRef.current += " " + cleaned;
@@ -293,16 +328,29 @@ function GroupScreen({ config, onEnd }) {
         silTimerRef.current = setTimeout(triggerResponse, 2200);
       }
     };
-    rec.onerror = (e) => {
+
+    rec.onerror = function(e) {
       if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; }
-      if (activeRef.current) setTimeout(() => { try { rec.start(); } catch (e) {} }, 800);
+      if (activeRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 800);
     };
-    rec.onend = () => {
-      if (activeRef.current && !isResponding) setTimeout(() => { try { rec.start(); } catch (e) {} }, 200);
+    rec.onend = function() {
+      if (activeRef.current && !isResponding) setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
     };
-    try { rec.start(); } catch (e) {}
-    return () => { activeRef.current = false; clearTimeout(silTimerRef.current); try { rec.stop(); } catch (e) {} };
+
+    try { rec.start(); } catch(e) {}
+
+    return function() {
+      activeRef.current = false;
+      clearTimeout(silTimerRef.current);
+      try { rec.stop(); } catch(e) {}
+    };
   }, [addLine, triggerResponse]);
+
+  function handleEnd() {
+    activeRef.current = false;
+    try { recRef.current.stop(); } catch(e) {}
+    onEnd(transcriptRef.current.map(function(l) { return l.text; }).join("\n"));
+  }
 
   return (
     <div>
@@ -311,34 +359,38 @@ function GroupScreen({ config, onEnd }) {
           <div>
             <div style={{ fontWeight: 500 }}>Group Supervision</div>
             <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 2 }}>
-              <span className="badge">{config.modality}</span> <span className="badge">{config.role}</span>
+              <span className="badge">{config.modality}</span>
+              {" "}
+              <span className="badge">{config.role}</span>
             </div>
           </div>
-          <button className="btn btn-sm danger" onClick={() => {
-            activeRef.current = false;
-            try { recRef.current?.stop(); } catch (e) {}
-            onEnd(transcriptRef.current.map(l => l.text).join("\n"));
-          }}>End &amp; review</button>
+          <button className="btn btn-sm danger" onClick={handleEnd}>End and review</button>
         </div>
       </div>
       <div className="card">
-        <div className="indicator"><div className={`dot ${dotState}`} /><div className="ind-text">{indText}</div></div>
+        <div className="indicator">
+          <div className={"dot " + dotState} />
+          <div className="ind-text">{indText}</div>
+        </div>
         {interim && <div className="interim">{interim}</div>}
-        <div className="hint" style={{ marginTop: "0.5rem" }}>Say <strong>"Hey Claude"</strong> followed by your question at any point.</div>
+        <div className="hint" style={{ marginTop: "0.5rem" }}>Say <strong>Hey Claude</strong> followed by your question at any point.</div>
       </div>
       <div className="card">
         <div className="section-label">Live transcript</div>
         <div className="transcript-wrap">
           {transcript.length === 0
             ? <div className="t-empty">Transcript will appear here as the session unfolds...</div>
-            : transcript.map(l => <div key={l.id} className={`t-line ${l.type}`}>{l.text}</div>)}
+            : transcript.map(function(l) { return <div key={l.id} className={"t-line " + l.type}>{l.text}</div>; })
+          }
         </div>
       </div>
       {supervisorReply && (
         <div className="card">
           <div className="response-area">
             <div className="response-label sup">Supervisor</div>
-            <div className="response-text">{supervisorReply === "typing" ? <Typing /> : supervisorReply}</div>
+            <div className="response-text">
+              {supervisorReply === "typing" ? <Typing /> : supervisorReply}
+            </div>
           </div>
         </div>
       )}
@@ -353,7 +405,6 @@ function SoloScreen({ config, onEnd }) {
   const [indText, setIndText] = useState("Setting up your client...");
   const [dotState, setDotState] = useState("responding");
   const [clientReply, setClientReply] = useState(null);
-  const [isResponding, setIsResponding] = useState(false);
 
   const recRef = useRef(null);
   const activeRef = useRef(false);
@@ -362,86 +413,26 @@ function SoloScreen({ config, onEnd }) {
   const personalityRef = useRef(PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)]);
   const speechTimerRef = useRef(null);
   const therapistBufferRef = useRef("");
-  const voiceRef = useRef(ELEVENLABS_VOICES[Math.floor(Math.random() * ELEVENLABS_VOICES.length)]);
-  const audioRef = useRef(null);
 
-  const addLine = useCallback((text, role) => {
-    const line = { text, role, id: Date.now() + Math.random() };
-    convRef.current = [...convRef.current, line];
-    setConversation([...convRef.current]);
+  const addLine = useCallback(function(text, role) {
+    const line = { text: text, role: role, id: Date.now() + Math.random() };
+    convRef.current = convRef.current.concat([line]);
+    setConversation(convRef.current.slice());
   }, []);
-
-  const speak = useCallback(async (text, cb) => {
-    try {
-      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-      const res = await fetch("/api/voice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voiceId: voiceRef.current.id }),
-      });
-      if (!res.ok) { fallback(text, cb); return; }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.onended = () => { URL.revokeObjectURL(url); cb?.(); };
-      audio.onerror = () => { URL.revokeObjectURL(url); cb?.(); };
-      audio.play();
-    } catch { fallback(text, cb); }
-    function fallback(text, cb) {
-      const utt = new SpeechSynthesisUtterance(text);
-      utt.rate = 0.92; utt.onend = cb; utt.onerror = cb;
-      window.speechSynthesis?.speak(utt);
-    }
-  }, []);
-
-  const handleTherapist = useCallback(async (text) => {
-    if (respondingRef.current) return;
-    respondingRef.current = true;
-    setIsResponding(true);
-    activeRef.current = false;
-    try { recRef.current?.stop(); } catch (e) {}
-    addLine(text, "therapist");
-    setDotState("responding");
-    setIndText("Client is thinking...");
-    setClientReply("typing");
-    const history = convRef.current.slice(-20).map(l => ({
-      role: l.role === "therapist" ? "user" : "assistant",
-      content: l.text,
-    }));
-    try {
-      const reply = await callAPI("/api/chat", {
-        system: buildClientSystem(config.modality, config.issue, personalityRef.current),
-        messages: history,
-      });
-      addLine(reply, "client");
-      setClientReply(reply);
-      setDotState("client");
-      setIndText("Session in progress — you are the therapist");
-      const afterSpeak = () => {
-        respondingRef.current = false; setIsResponding(false);
-        activeRef.current = true;
-        try { recRef.current?.start(); } catch (e) {}
-      };
-      if (config.respMode === "voice") speak(reply, afterSpeak);
-      else afterSpeak();
-    } catch {
-      setClientReply("Connection issue — please try again.");
-      respondingRef.current = false; setIsResponding(false);
-      activeRef.current = true;
-      try { recRef.current?.start(); } catch (e) {}
-    }
-  }, [config, addLine, speak]);
 
   function startMic() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { setIndText("Voice not supported — please use Chrome."); return; }
     const rec = new SR();
-    rec.continuous = true; rec.interimResults = true; rec.lang = "en-US";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = "en-US";
     recRef.current = rec;
-    rec.onresult = (e) => {
+
+    rec.onresult = function(e) {
       if (respondingRef.current) return;
-      let interimText = "", finalText = "";
+      let interimText = "";
+      let finalText = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
         else interimText += e.results[i][0].transcript;
@@ -451,38 +442,93 @@ function SoloScreen({ config, onEnd }) {
         setInterim("");
         therapistBufferRef.current += " " + finalText.trim();
         clearTimeout(speechTimerRef.current);
-        speechTimerRef.current = setTimeout(() => {
+        speechTimerRef.current = setTimeout(function() {
           const said = therapistBufferRef.current.trim();
           therapistBufferRef.current = "";
           if (said) handleTherapist(said);
         }, 1800);
       }
     };
-    rec.onerror = (e) => {
+
+    rec.onerror = function(e) {
       if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; }
-      if (activeRef.current && !respondingRef.current) setTimeout(() => { try { rec.start(); } catch (e) {} }, 800);
+      if (activeRef.current && !respondingRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 800);
     };
-    rec.onend = () => {
-      if (activeRef.current && !respondingRef.current) setTimeout(() => { try { rec.start(); } catch (e) {} }, 200);
+    rec.onend = function() {
+      if (activeRef.current && !respondingRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
     };
-    try { rec.start(); } catch (e) {}
+
+    try { rec.start(); } catch(e) {}
   }
 
-  useEffect(() => {
+  async function handleTherapist(text) {
+    if (respondingRef.current) return;
+    respondingRef.current = true;
+    activeRef.current = false;
+    try { recRef.current.stop(); } catch(e) {}
+    addLine(text, "therapist");
+    setDotState("responding");
+    setIndText("Client is thinking...");
+    setClientReply("typing");
+
+    const history = convRef.current.slice(-20).map(function(l) {
+      return { role: l.role === "therapist" ? "user" : "assistant", content: l.text };
+    });
+
+    try {
+      const reply = await callAPI("/api/chat", {
+        system: buildClientSystem(config.modality, config.issue, personalityRef.current),
+        messages: history,
+      });
+      addLine(reply, "client");
+      setClientReply(reply);
+      setDotState("client");
+      setIndText("Session in progress — you are the therapist");
+
+      function afterSpeak() {
+        respondingRef.current = false;
+        activeRef.current = true;
+        try { recRef.current.start(); } catch(e) {}
+      }
+
+      if (config.respMode === "voice") {
+        speakText(reply, afterSpeak);
+      } else {
+        afterSpeak();
+      }
+    } catch(e) {
+      setClientReply("Connection issue — please try again.");
+      respondingRef.current = false;
+      activeRef.current = true;
+      try { recRef.current.start(); } catch(e) {}
+    }
+  }
+
+  useEffect(function() {
     async function init() {
       try {
         const reply = await callAPI("/api/chat", {
           system: buildClientSystem(config.modality, config.issue, personalityRef.current),
-          messages: [{ role: "user", content: "The therapist has just welcomed you in. You have just sat down. You have not spoken yet — wait for them to begin. Just give a brief natural settling-in response, nothing more." }],
+          messages: [{ role: "user", content: "The therapist has just welcomed you in. You have just sat down. You have not spoken yet. Wait for them to begin. Give a brief natural settling-in response, spoken words only, no asterisks or stage directions." }],
         });
         addLine(reply, "client");
         setClientReply(reply);
         setDotState("client");
         setIndText("Session in progress — you are the therapist");
-        const startListening = () => { activeRef.current = true; startMic(); };
-        if (config.respMode === "voice") speak(reply, startListening);
-        else startListening();
-      } catch { setIndText("Connection issue — please refresh and try again."); }
+
+        function startListening() {
+          activeRef.current = true;
+          startMic();
+        }
+
+        if (config.respMode === "voice") {
+          speakText(reply, startListening);
+        } else {
+          startListening();
+        }
+      } catch(e) {
+        setIndText("Connection issue — please refresh and try again.");
+      }
     }
     init();
   }, []);
@@ -490,10 +536,11 @@ function SoloScreen({ config, onEnd }) {
   function handleEnd() {
     activeRef.current = false;
     clearTimeout(speechTimerRef.current);
-    try { recRef.current?.stop(); } catch (e) {}
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    window.speechSynthesis?.cancel();
-    onEnd(convRef.current.map(l => (l.role === "therapist" ? "Therapist: " : "Client: ") + l.text).join("\n"));
+    try { recRef.current.stop(); } catch(e) {}
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    onEnd(convRef.current.map(function(l) {
+      return (l.role === "therapist" ? "Therapist: " : "Client: ") + l.text;
+    }).join("\n"));
   }
 
   return (
@@ -503,15 +550,19 @@ function SoloScreen({ config, onEnd }) {
           <div>
             <div style={{ fontWeight: 500 }}>Solo Practice</div>
             <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 2 }}>
-              <span className="badge">{config.modality}</span> <span className="badge">{config.issue}</span>
-              {config.respMode === "voice" && <span className="badge" style={{ marginLeft: 4 }}>Voice: {voiceRef.current?.label}</span>}
+              <span className="badge">{config.modality}</span>
+              {" "}
+              <span className="badge">{config.issue}</span>
             </div>
           </div>
           <button className="btn btn-sm danger" onClick={handleEnd}>End session</button>
         </div>
       </div>
       <div className="card">
-        <div className="indicator"><div className={`dot ${dotState}`} /><div className="ind-text">{indText}</div></div>
+        <div className="indicator">
+          <div className={"dot " + dotState} />
+          <div className="ind-text">{indText}</div>
+        </div>
         {interim && <div className="interim">{interim}</div>}
         <div className="hint" style={{ marginTop: "0.5rem" }}>Speak naturally — the microphone is always on. The client responds after you pause.</div>
       </div>
@@ -520,19 +571,26 @@ function SoloScreen({ config, onEnd }) {
         <div className="transcript-wrap">
           {conversation.length === 0
             ? <div className="t-empty">Session will appear here...</div>
-            : conversation.map(l => (
-              <div key={l.id} className={`t-line ${l.role === "therapist" ? "therapist" : "client"}`}>
-                <span style={{ opacity: 0.45, fontSize: "0.75rem", marginRight: "0.4rem" }}>{l.role === "therapist" ? "You" : "Client"}</span>
-                {l.text}
-              </div>
-            ))}
+            : conversation.map(function(l) {
+                return (
+                  <div key={l.id} className={"t-line " + (l.role === "therapist" ? "therapist" : "client")}>
+                    <span style={{ opacity: 0.45, fontSize: "0.75rem", marginRight: "0.4rem" }}>
+                      {l.role === "therapist" ? "You" : "Client"}
+                    </span>
+                    {l.text}
+                  </div>
+                );
+              })
+          }
         </div>
       </div>
       {clientReply && (
         <div className="card">
           <div className="response-area">
             <div className="response-label cli">Client</div>
-            <div className="response-text">{clientReply === "typing" ? <Typing /> : clientReply}</div>
+            <div className="response-text">
+              {clientReply === "typing" ? <Typing /> : clientReply}
+            </div>
           </div>
         </div>
       )}
@@ -549,44 +607,55 @@ function ReviewScreen({ config, transcript, onReset }) {
     setStep("loading");
     try {
       const text = await callAPI("/api/review", {
-        transcript, modality: config.modality, issue: config.issue || "", mode: config.mode,
+        transcript: transcript,
+        modality: config.modality,
+        issue: config.issue || "",
+        mode: config.mode,
       });
       setReviewText(text);
       setStep("done");
       if (mode === "voice" && window.speechSynthesis) {
-        const utt = new SpeechSynthesisUtterance(text);
-        utt.rate = 0.92;
-        window.speechSynthesis.speak(utt);
+        speakText(text, function() {});
       }
-    } catch { setReviewText("Connection issue — please try again."); setStep("done"); }
+    } catch(e) {
+      setReviewText("Connection issue — please try again.");
+      setStep("done");
+    }
   }
 
   return (
     <div>
       <div className="header" style={{ paddingBottom: "1.5rem" }}>
         <h1>Session Review</h1>
-        <p>{config.modality}{config.issue ? ` · ${config.issue}` : ""} · {config.mode === "solo" ? "Solo Practice" : "Group Supervision"}</p>
+        <p>{config.modality}{config.issue ? " — " + config.issue : ""} — {config.mode === "solo" ? "Solo Practice" : "Group Supervision"}</p>
       </div>
+
       {step === "choose" && (
         <div className="card">
-          <div style={{ fontSize: "0.95rem", marginBottom: "1rem", color: "var(--text2)" }}>How would you like to receive your clinical review?</div>
+          <div style={{ fontSize: "0.95rem", marginBottom: "1rem", color: "var(--text2)" }}>
+            How would you like to receive your clinical review?
+          </div>
           <div style={{ display: "flex", gap: "0.75rem" }}>
-            <button className="btn" style={{ flex: 1 }} onClick={() => generate("text")}>Written only</button>
-            <button className="btn" style={{ flex: 1 }} onClick={() => generate("voice")}>Read aloud + written</button>
+            <button className="btn" style={{ flex: 1 }} onClick={function() { generate("text"); }}>Written only</button>
+            <button className="btn" style={{ flex: 1 }} onClick={function() { generate("voice"); }}>Read aloud and written</button>
           </div>
         </div>
       )}
+
       {step === "loading" && (
         <div className="card">
           <div className="response-area">
             <div className="response-label sup">Clinical Review</div>
             <Typing />
-            <div style={{ fontSize: "0.8rem", color: "var(--text3)", marginTop: "0.5rem" }}>Reviewing your session across all clinical dimensions...</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--text3)", marginTop: "0.5rem" }}>
+              Reviewing your session across all clinical dimensions...
+            </div>
           </div>
         </div>
       )}
+
       {step === "done" && (
-        <>
+        <div>
           <div className="card">
             <div className="response-area">
               <div className="response-label sup">Clinical Review</div>
@@ -594,7 +663,7 @@ function ReviewScreen({ config, transcript, onReset }) {
             </div>
           </div>
           <button className="btn" onClick={onReset} style={{ marginTop: "0.5rem" }}>Start new session</button>
-        </>
+        </div>
       )}
     </div>
   );
@@ -606,9 +675,21 @@ export default function Home() {
   const [config, setConfig] = useState(null);
   const [finalTranscript, setFinalTranscript] = useState("");
 
-  function handleStart(cfg) { setConfig(cfg); setScreen(cfg.mode); }
-  function handleEnd(transcript) { setFinalTranscript(transcript); setScreen("review"); }
-  function handleReset() { setConfig(null); setFinalTranscript(""); setScreen("setup"); }
+  function handleStart(cfg) {
+    setConfig(cfg);
+    setScreen(cfg.mode);
+  }
+
+  function handleEnd(transcript) {
+    setFinalTranscript(transcript);
+    setScreen("review");
+  }
+
+  function handleReset() {
+    setConfig(null);
+    setFinalTranscript("");
+    setScreen("setup");
+  }
 
   return (
     <div className="app">
