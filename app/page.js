@@ -558,13 +558,14 @@ function SoloScreen({ config, onEnd }) {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button className="btn btn-sm" onClick={function() {
+                <button className="btn btn-sm" onClick={function() {
               const next = !mutedRef.current;
               mutedRef.current = next;
               setMuted(next);
               if (next) {
                 try { recRef.current && recRef.current.stop(); } catch(e) {}
               } else {
+                activeRef.current = true;
                 try { recRef.current && recRef.current.start(); } catch(e) {}
               }
             }}>
