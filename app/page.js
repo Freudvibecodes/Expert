@@ -457,9 +457,8 @@ function SoloScreen({ config, onEnd }) {
       if (activeRef.current && !respondingRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 800);
     };
     rec.onend = function() {
-      if (activeRef.current && !respondingRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
+      if (activeRef.current && !respondingRef.current && !mutedRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
     };
-
     try { rec.start(); } catch(e) {}
   }
 
