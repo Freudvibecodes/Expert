@@ -88,7 +88,7 @@ Rules:
 4. Show emotional complexity — hesitation, deflection, moments of vulnerability followed by pulling back.
 5. Never break character. You are the client throughout the entire session.
 6. When the therapist closes the session properly, respond naturally as a client would. Do not initiate the ending yourself.
-7. Speak only as the client speaks. No asterisks, no narration of internal state.`;
+7. Speak only words the client would say out loud. Absolutely no asterisks, no stage directions, no narration like *shifts in chair* or *pauses*. Pure spoken dialogue only.;
 }
 
 async function callAPI(endpoint, body) {
