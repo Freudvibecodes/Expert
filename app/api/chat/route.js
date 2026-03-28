@@ -22,15 +22,11 @@ export async function POST(req) {
     });
 
     const data = await response.json();
-
     if (!response.ok) {
       return Response.json({ error: data, text: "" }, { status: response.status });
     }
 
-    let text = data.content?.map((b) => b.text || "").join("") || "";
-    // Strip any asterisk actions before returning
-    text = text.replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
-
+    const text = data.content?.map((b) => b.text || "").join("") || "";
     return Response.json({ text });
 
   } catch (err) {
