@@ -130,7 +130,8 @@ function speakText(text, cb) {
   window.speechSynthesis.cancel();
 
   function doSpeak() {
-    const utt = new SpeechSynthesisUtterance(text);
+    const spokenText = text.replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
+    const utt = new SpeechSynthesisUtterance(spokenText);
     const voices = window.speechSynthesis.getVoices();
     const preferred = [
       "Google UK English Female",
