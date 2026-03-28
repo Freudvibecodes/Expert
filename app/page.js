@@ -105,6 +105,10 @@ async function callAPI(endpoint, body) {
     body: JSON.stringify(body),
   });
   const data = await res.json();
+  if (data.error) {
+    console.error("API Error:", data.error);
+    return "Error: " + JSON.stringify(data.error);
+  }
   return data.text || "";
 }
 
