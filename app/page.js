@@ -127,7 +127,6 @@ function getBestVoice() {
 
 function speakText(text, cb) {
   if (!window.speechSynthesis) { cb && cb(); return; }
-  window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
   const voice = getBestVoice();
   if (voice) utt.voice = voice;
@@ -562,9 +561,13 @@ function SoloScreen({ config, onEnd }) {
               const next = !mutedRef.current;
               mutedRef.current = next;
               setMuted(next);
-              if (next) window.speechSynthesis && window.speechSynthesis.cancel();
+              if (next) {
+                try { recRef.current && recRef.current.stop(); } catch(e) {}
+              } else {
+                try { recRef.current && recRef.current.start(); } catch(e) {}
+              }
             }}>
-              {muted ? "Unmute client" : "Mute client"}
+              {muted ? "Unmute mic" : "Mute mic"}
             </button>
             <button className="btn btn-sm danger" onClick={handleEnd}>End session</button>
           </div>
