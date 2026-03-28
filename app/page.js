@@ -128,15 +128,44 @@ function getBestVoice() {
 function speakText(text, cb) {
   if (!window.speechSynthesis) { cb && cb(); return; }
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  const voice = getBestVoice();
-  if (voice) utt.voice = voice;
-  utt.rate = 0.88;
-  utt.pitch = 1.05;
-  utt.volume = 1;
-  utt.onend = cb;
-  utt.onerror = cb;
-  window.speechSynthesis.speak(utt);
+
+  function doSpeak() {
+    const utt = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = [
+      "Google UK English Female",
+      "Google US English",
+      "Microsoft Aria Online (Natural)",
+      "Microsoft Jenny Online (Natural)",
+      "Microsoft Guy Online (Natural)",
+      "Samantha", "Karen", "Daniel",
+    ];
+    let picked = null;
+    for (const name of preferred) {
+      picked = voices.find(function(v) { return v.name === name; });
+      if (picked) break;
+    }
+    if (!picked) {
+      picked = voices.find(function(v) { return v.lang.startsWith("en") && !v.name.toLowerCase().includes("compact"); });
+    }
+    if (picked) utt.voice = picked;
+    utt.rate = 0.88;
+    utt.pitch = 1.05;
+    utt.volume = 1;
+    utt.onend = cb;
+    utt.onerror = cb;
+    window.speechSynthesis.speak(utt);
+  }
+
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    doSpeak();
+  } else {
+    window.speechSynthesis.onvoiceschanged = function() {
+      window.speechSynthesis.onvoiceschanged = null;
+      doSpeak();
+    };
+  }
 }
 
 // ── SETUP ─────────────────────────────────────────────────────
