@@ -83,7 +83,7 @@ export default function NotesPractice({ studentSessions }) {
 
   function generateRandomCase() {
     const v = CASE_VIGNETTES[Math.floor(Math.random() * CASE_VIGNETTES.length)];
-    setCaseContext(`Client vignette: ${v.vignette}\n\nPresenting concern: ${v.presenting}\n\nImagine this was a 50-minute intake session. The client shared the above and you used ${format} approaches to begin building rapport and gathering information.`);
+    setCaseContext(`Client session summary:\n\n${v.session_detail}\n\nPresenting concern: ${v.presenting}\n\nThis was a 50-minute session. Write a ${format} progress note based on the above information.`);
     setNoteText("");
     setReviewText("");
   }
