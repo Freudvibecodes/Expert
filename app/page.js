@@ -370,10 +370,10 @@ function GroupScreen({ config, onEnd }) {
           clearTimeout(silTimerRef.current);
           silTimerRef.current = setTimeout(triggerResponse, 2200);
         } else {
-          addLine(cleaned, "");
+          addLine(cleaned, "speaker");
         }
       } else {
-        addLine(cleaned, "");
+        addLine(cleaned, "speaker");
         qBufferRef.current += " " + cleaned;
         clearTimeout(silTimerRef.current);
         silTimerRef.current = setTimeout(triggerResponse, 2200);
@@ -431,7 +431,16 @@ function GroupScreen({ config, onEnd }) {
         <div className="transcript-wrap" ref={transcriptBoxRef}>
           {transcript.length === 0
             ? <div className="t-empty">Transcript will appear here as the session unfolds...</div>
-            : transcript.map(function(l) { return <div key={l.id} className={"t-line " + l.type}>{l.text}</div>; })
+           : transcript.map(function(l) { return (
+                <div key={l.id} className={"t-line " + l.type}>
+                  {l.type === "speaker" && (
+                    <span style={{ opacity: 0.45, fontSize: "0.75rem", marginRight: "0.4rem", textTransform: "capitalize" }}>
+                      {config.role}
+                    </span>
+                  )}
+                  {l.text}
+                </div>
+              ); })
           }
         </div>
       </div>
