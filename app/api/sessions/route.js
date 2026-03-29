@@ -45,7 +45,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   const body = await req.json();
-  const { student_name, mode, modality, session_type, issue, transcript, review } = body;
+  const { student_name, mode, modality, session_type, issue, transcript, review, duration_seconds, intention } = body;
 
   if (!student_name || !mode || !modality || !session_type) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
@@ -59,9 +59,27 @@ export async function POST(req) {
     issue: issue || "",
     transcript: transcript || "",
     review: review || "",
+    duration_seconds: duration_seconds || 0,
+    intention: intention || "",
   });
 
   return Response.json(data);
+}
+
+export async function PATCH(req) {
+  const body = await req.json();
+  const { id, professor_note, password } = body;
+
+  if (password !== process.env.PROFESSOR_PASSWORD) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!id) {
+    return Response.json({ error: "Missing id" }, { status: 400 });
+  }
+
+  await supabase("PATCH", `sessions?id=eq.${id}`, { professor_note });
+  return Response.json({ success: true });
 }
 
 export async function DELETE(req) {
@@ -73,7 +91,6 @@ export async function DELETE(req) {
     return Response.json({ error: "Missing id or student" }, { status: 400 });
   }
 
-  // Only allow deleting your own sessions
   const encoded = encodeURIComponent(student);
   await supabase("DELETE", `sessions?id=eq.${id}&student_name=eq.${encoded}`);
   return Response.json({ success: true });
