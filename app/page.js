@@ -65,21 +65,32 @@ Your supervision philosophy:
 
 function buildClientSystem(modality, issue, personality) {
   const issueText = issue === "Randomised — surprise me"
-    ? "a clinically rich presenting issue of your own choosing — do not reveal what it is upfront"
+    ? "a clinically rich presenting issue of your own choosing — do not reveal what it is upfront under any circumstances"
     : issue;
   return `You are playing a real therapy client in a graduate training session. The student therapist is practising ${modality}.
 
 Your presenting issue: ${issueText}
 Your personality: ${personality}
 
-Rules:
-1. Reveal your presenting problem gradually — in small natural pieces, the way a real client would. Never dump it all at once.
-2. Keep responses short — 1 to 4 sentences. Real clients do not monologue.
-3. React authentically to question quality. Great open question means open up more. Closed question means short answer. Clumsy or leading question means feel slightly put off.
-4. Show emotional complexity — hesitation, deflection, moments of vulnerability followed by pulling back.
-5. Never break character. You are the client throughout the entire session.
-6. When the therapist closes the session properly, respond naturally as a client would. Do not initiate the ending yourself.
-7. You may use asterisks to show body language or non-verbal cues like *pauses* or *looks away* — but never narrate your own internal thoughts. Only observable behaviour.`;
+CRITICAL RULES — follow these exactly:
+
+1. YOU DO NOT LEAD. The therapist leads the entire session. You only respond to what they ask or say. Never volunteer information they have not asked for.
+
+2. START SLOW. In the very first exchange just say hello and settle in naturally. Nothing more. Do not mention why you are here. Wait for the therapist to open the session and eventually ask what brings you in.
+
+3. REVEAL NOTHING until the therapist asks. If they ask what brings you in, give only a vague one-sentence hint. If they explore further, give a little more. Build it slowly across the whole session the way a real client would. Never dump your presenting issue.
+
+4. KEEP RESPONSES SHORT. One to three sentences maximum every single time. Real clients do not monologue. If you are writing more than three sentences, stop.
+
+5. FOLLOW THE THERAPIST'S LEAD. Closed question means short answer. Open question means open up slightly. Silence means you sit in silence too, or say something like sorry I am just not sure where to start.
+
+6. SHOW REALISTIC HESITATION. Real clients pause, deflect, say I do not know, minimise their problems, change the subject. Do this naturally throughout.
+
+7. Never break character for any reason. You are the client for the entire session.
+
+8. You may use asterisks for visible body language only — like pauses or looks at hands — never for internal thoughts.
+
+9. If you are confused about how therapy works, say so briefly in one sentence and let the therapist handle it. Do not ask lots of questions about the process.`;
 }
 
 async function callAPI(endpoint, body) {
@@ -442,7 +453,6 @@ function SoloScreen({ config, onEnd }) {
     setConversation(convRef.current.slice());
   }, []);
 
-  // Autoscroll whenever conversation updates
   useEffect(function() {
     if (convBoxRef.current) {
       convBoxRef.current.scrollTop = convBoxRef.current.scrollHeight;
@@ -454,10 +464,8 @@ function SoloScreen({ config, onEnd }) {
     mutedRef.current = next;
     setMuted(next);
     if (next) {
-      // Muting — stop the mic so client can't hear you
       try { recRef.current && recRef.current.stop(); } catch(e) {}
     } else {
-      // Unmuting — restart the mic
       activeRef.current = true;
       try { recRef.current && recRef.current.start(); } catch(e) {}
     }
@@ -489,7 +497,7 @@ function SoloScreen({ config, onEnd }) {
           const said = therapistBufferRef.current.trim();
           therapistBufferRef.current = "";
           if (said) handleTherapist(said);
-        }, 1800);
+        }, 3500);
       }
     };
 
@@ -500,7 +508,6 @@ function SoloScreen({ config, onEnd }) {
       }
     };
     rec.onend = function() {
-      // Only restart if active, not responding, and not muted
       if (activeRef.current && !respondingRef.current && !mutedRef.current) {
         setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
       }
@@ -559,7 +566,7 @@ function SoloScreen({ config, onEnd }) {
       try {
         const reply = await callAPI("/api/chat", {
           system: buildClientSystem(config.modality, config.issue, personalityRef.current),
-          messages: [{ role: "user", content: "The therapist has just welcomed you in. You have just sat down. You have not spoken yet. Wait for them to begin. Give a brief natural settling-in response. You may use asterisks for visible body language only." }],
+          messages: [{ role: "user", content: "You have just walked into the therapy room and sat down. The therapist is about to greet you. Say hello naturally and nothing more. Do not mention why you are here. One sentence only." }],
         });
         addLine(reply, "client");
         setClientReply(reply);
@@ -659,6 +666,7 @@ function SoloScreen({ config, onEnd }) {
 function ReviewScreen({ config, transcript, onReset }) {
   const [step, setStep] = useState("choose");
   const [reviewText, setReviewText] = useState("");
+  const [sessionType, setSessionType] = useState("intake");
 
   async function generate(mode) {
     setStep("loading");
@@ -668,6 +676,7 @@ function ReviewScreen({ config, transcript, onReset }) {
         modality: config.modality,
         issue: config.issue || "",
         mode: config.mode,
+        sessionType: sessionType,
       });
       setReviewText(text);
       setStep("done");
@@ -690,9 +699,19 @@ function ReviewScreen({ config, transcript, onReset }) {
       {step === "choose" && (
         <div className="card">
           <div style={{ fontSize: "0.95rem", marginBottom: "1rem", color: "var(--text2)" }}>
-            How would you like to receive your clinical review?
+            Before your review — what kind of session was this?
           </div>
-          <div style={{ display: "flex", gap: "0.75rem" }}>
+          <div className="field">
+            <label>Session type</label>
+            <select value={sessionType} onChange={function(e) { setSessionType(e.target.value); }}>
+              <option value="intake">Intake / first session — rapport building, history gathering</option>
+              <option value="early">Early session — establishing goals, building alliance</option>
+              <option value="mid">Mid-therapy — active intervention and technique work</option>
+              <option value="closing">Closing session — consolidation and termination</option>
+              <option value="crisis">Crisis session — safety assessment and stabilisation</option>
+            </select>
+          </div>
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
             <button className="btn" style={{ flex: 1 }} onClick={function() { generate("text"); }}>Written only</button>
             <button className="btn" style={{ flex: 1 }} onClick={function() { generate("voice"); }}>Read aloud and written</button>
           </div>
