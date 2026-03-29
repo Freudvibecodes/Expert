@@ -650,8 +650,8 @@ function SoloScreen({ config, onEnd }) {
               <button
                 className="btn primary"
                 onClick={startTalking}
-                disabled={respondingRef.current}
-                style={{ opacity: respondingRef.current ? 0.4 : 1 }}
+                disabled={false}
+style={{ opacity: 1 }}
               >
                 Start talking
               </button>
