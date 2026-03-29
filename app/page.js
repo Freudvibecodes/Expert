@@ -489,7 +489,7 @@ function SoloScreen({ config, onEnd }) {
           const said = therapistBufferRef.current.trim();
           therapistBufferRef.current = "";
           if (said) handleTherapist(said);
-        }, 1800);
+        }, 5000);
       }
     };
 
