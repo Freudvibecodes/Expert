@@ -45,6 +45,12 @@ const MODALITY_CONTEXT = {
   "Integrative":"Integrative approach drawing on multiple modalities as clinically appropriate.",
 };
 
+const ROLE_OPPOSITE = {
+  therapist: "Client",
+  client: "Therapist",
+  observer: "Other",
+};
+
 function buildGroupSystem(modality, role) {
   return `You are a clinical supervisor present in a live graduate therapy training session. You have been listening to everything said so far.
 
@@ -217,7 +223,7 @@ function SetupScreen({ onStart }) {
               </select>
             </div>
             <div className="field">
-              <label>Your role</label>
+              <label>Your role in this session</label>
               <select value={gRole} onChange={function(e) { setGRole(e.target.value); }}>
                 <option value="therapist">Therapist</option>
                 <option value="client">Client</option>
@@ -279,6 +285,11 @@ function GroupScreen({ config, onEnd }) {
   const [dotState, setDotState] = useState("listening");
   const [supervisorReply, setSupervisorReply] = useState(null);
   const [isResponding, setIsResponding] = useState(false);
+  const [currentSpeaker, setCurrentSpeaker] = useState(config.role);
+
+  // Determine the opposite role label for alternating
+  const myRole = config.role; // e.g. "therapist"
+  const otherRole = ROLE_OPPOSITE[config.role] || "Other"; // e.g. "Client"
 
   const recRef = useRef(null);
   const activeRef = useRef(true);
@@ -287,9 +298,10 @@ function GroupScreen({ config, onEnd }) {
   const silTimerRef = useRef(null);
   const transcriptRef = useRef([]);
   const transcriptBoxRef = useRef(null);
+  const currentSpeakerRef = useRef(config.role);
 
-  const addLine = useCallback(function(text, type) {
-    const line = { text: text, type: type, id: Date.now() + Math.random() };
+  const addLine = useCallback(function(text, type, speaker) {
+    const line = { text: text, type: type, speaker: speaker, id: Date.now() + Math.random() };
     transcriptRef.current = transcriptRef.current.concat([line]);
     setTranscript(transcriptRef.current.slice());
   }, []);
@@ -311,7 +323,9 @@ function GroupScreen({ config, onEnd }) {
     setIndText("Supervisor is thinking...");
     setIsResponding(true);
     setSupervisorReply("typing");
-    const ctx = transcriptRef.current.slice(-40).map(function(l) { return l.text; }).join("\n");
+    const ctx = transcriptRef.current.slice(-40).map(function(l) {
+      return (l.speaker ? l.speaker + ": " : "") + l.text;
+    }).join("\n");
     const msg = "Session transcript so far:\n" + (ctx || "(session just started)") + "\n\nStudent just asked you: \"" + q + "\"";
     try {
       const reply = await callAPI("/api/chat", {
@@ -319,7 +333,7 @@ function GroupScreen({ config, onEnd }) {
         messages: [{ role: "user", content: msg }],
       });
       setSupervisorReply(reply);
-      addLine("[Supervisor]: " + reply, "supervisor-line");
+      addLine("[Supervisor]: " + reply, "supervisor-line", "Supervisor");
       speakText(reply, function() {
         setIsResponding(false);
         setDotState("listening");
@@ -358,22 +372,23 @@ function GroupScreen({ config, onEnd }) {
       setInterim("");
       const cleaned = finalText.trim();
       const lower = cleaned.toLowerCase();
+
       if (!heyModeRef.current) {
         if (lower.includes("hey claude")) {
           heyModeRef.current = true;
           const idx = lower.indexOf("hey claude");
           const before = cleaned.substring(0, idx).trim();
           const after = cleaned.substring(idx).trim();
-          if (before) addLine(before, "");
-          addLine(after, "trigger");
+          if (before) addLine(before, "speaker", currentSpeakerRef.current);
+          addLine(after, "trigger", currentSpeakerRef.current);
           qBufferRef.current = after.replace(/hey claude/gi, "").trim();
           clearTimeout(silTimerRef.current);
           silTimerRef.current = setTimeout(triggerResponse, 2200);
         } else {
-          addLine(cleaned, "speaker");
+          addLine(cleaned, "speaker", currentSpeakerRef.current);
         }
       } else {
-        addLine(cleaned, "speaker");
+        addLine(cleaned, "speaker", currentSpeakerRef.current);
         qBufferRef.current += " " + cleaned;
         clearTimeout(silTimerRef.current);
         silTimerRef.current = setTimeout(triggerResponse, 2200);
@@ -397,11 +412,30 @@ function GroupScreen({ config, onEnd }) {
     };
   }, [addLine, triggerResponse]);
 
+  function switchSpeaker() {
+    const next = currentSpeakerRef.current === myRole ? otherRole : myRole;
+    currentSpeakerRef.current = next;
+    setCurrentSpeaker(next);
+  }
+
   function handleEnd() {
     activeRef.current = false;
     try { recRef.current.stop(); } catch(e) {}
-    onEnd(transcriptRef.current.map(function(l) { return l.text; }).join("\n"));
+    const fullTranscript = transcriptRef.current.map(function(l) {
+      return (l.speaker ? l.speaker + ": " : "") + l.text;
+    }).join("\n");
+    onEnd(fullTranscript);
   }
+
+  // Speaker label colours
+  const speakerColor = function(speaker) {
+    if (!speaker) return "";
+    const s = speaker.toLowerCase();
+    if (s === "therapist") return "#185FA5";
+    if (s === "client") return "#854F0B";
+    if (s === "supervisor") return "#2D6A4F";
+    return "var(--text2)";
+  };
 
   return (
     <div>
@@ -418,32 +452,45 @@ function GroupScreen({ config, onEnd }) {
           <button className="btn btn-sm danger" onClick={handleEnd}>End and review</button>
         </div>
       </div>
+
       <div className="card">
         <div className="indicator">
           <div className={"dot " + dotState} />
           <div className="ind-text">{indText}</div>
         </div>
         {interim && <div className="interim">{interim}</div>}
+        <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ fontSize: "0.85rem", color: "var(--text2)" }}>
+            Speaking as: <strong style={{ color: speakerColor(currentSpeaker), textTransform: "capitalize" }}>{currentSpeaker}</strong>
+          </div>
+          <button className="btn btn-sm" onClick={switchSpeaker}>
+            Switch to {currentSpeakerRef.current === myRole ? otherRole : myRole}
+          </button>
+        </div>
         <div className="hint" style={{ marginTop: "0.5rem" }}>Say <strong>Hey Claude</strong> followed by your question at any point.</div>
       </div>
+
       <div className="card">
         <div className="section-label">Live transcript</div>
         <div className="transcript-wrap" ref={transcriptBoxRef}>
           {transcript.length === 0
             ? <div className="t-empty">Transcript will appear here as the session unfolds...</div>
-           : transcript.map(function(l) { return (
-                <div key={l.id} className={"t-line " + l.type}>
-                  {l.type === "speaker" && (
-                    <span style={{ opacity: 0.45, fontSize: "0.75rem", marginRight: "0.4rem", textTransform: "capitalize" }}>
-                      {config.role}
-                    </span>
-                  )}
-                  {l.text}
-                </div>
-              ); })
+            : transcript.map(function(l) {
+                return (
+                  <div key={l.id} className={"t-line " + l.type}>
+                    {l.speaker && (
+                      <span style={{ fontSize: "0.75rem", fontWeight: 500, marginRight: "0.4rem", color: speakerColor(l.speaker), textTransform: "capitalize" }}>
+                        {l.speaker}
+                      </span>
+                    )}
+                    {l.text}
+                  </div>
+                );
+              })
           }
         </div>
       </div>
+
       {supervisorReply && (
         <div className="card">
           <div className="response-area">
