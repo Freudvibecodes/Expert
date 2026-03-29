@@ -63,14 +63,24 @@ Your supervision philosophy:
 - Neutral, professional tone. You are in a live room — be concise.`;
 }
 
-function buildClientSystem(modality, issue, personality) {
+function buildClientSystem(modality, issue, personality, sessionType) {
   const issueText = issue === "Randomised — surprise me"
     ? "a clinically rich presenting issue of your own choosing — do not reveal what it is upfront under any circumstances"
     : issue;
+
+  const sessionContext = {
+    intake: "This is a first intake session. The client has never met this therapist before. Start with just a hello. Do not reveal anything about why you are here until the therapist asks.",
+    early: "This is an early session, maybe the second or third meeting. You have met this therapist once or twice before. You are still cautious but slightly more at ease than the very first session.",
+    mid: "This is a mid-therapy session. You have been seeing this therapist for a while and there is an established relationship. You can be somewhat more open but still realistic in how much you share at once.",
+    closing: "This is a closing or final session. You have been working with this therapist for some time. There is warmth and trust. You may reflect on the journey and express feelings about ending.",
+    crisis: "This is a crisis session. You are in significant distress. You may be tearful, overwhelmed, or struggling to articulate what is happening. You need support urgently.",
+  };
+
   return `You are playing a real therapy client in a graduate training session. The student therapist is practising ${modality}.
 
 Your presenting issue: ${issueText}
 Your personality: ${personality}
+Session context: ${sessionContext[sessionType] || sessionContext.intake}
 
 CRITICAL RULES — follow these exactly:
 
@@ -170,6 +180,7 @@ function SetupScreen({ onStart }) {
   const [sModality, setSModality] = useState("");
   const [sIssue, setSIssue] = useState("Randomised — surprise me");
   const [sRespMode, setSRespMode] = useState("voice");
+  const [sSessionType, setSSessionType] = useState("intake");
 
   function handleStart() {
     if (mode === "group") {
@@ -177,7 +188,7 @@ function SetupScreen({ onStart }) {
       onStart({ mode: "group", modality: gModality, role: gRole });
     } else {
       if (!sModality) { alert("Please select a modality."); return; }
-      onStart({ mode: "solo", modality: sModality, issue: sIssue, respMode: sRespMode });
+      onStart({ mode: "solo", modality: sModality, issue: sIssue, respMode: sRespMode, sessionType: sSessionType });
     }
   }
 
@@ -232,6 +243,16 @@ function SetupScreen({ onStart }) {
               <label>Client presenting issue</label>
               <select value={sIssue} onChange={function(e) { setSIssue(e.target.value); }}>
                 {ISSUES.map(function(i) { return <option key={i}>{i}</option>; })}
+              </select>
+            </div>
+            <div className="field">
+              <label>Session type</label>
+              <select value={sSessionType} onChange={function(e) { setSSessionType(e.target.value); }}>
+                <option value="intake">Intake / first session — rapport building, history gathering</option>
+                <option value="early">Early session — establishing goals, building alliance</option>
+                <option value="mid">Mid-therapy — active intervention and technique work</option>
+                <option value="closing">Closing session — consolidation and termination</option>
+                <option value="crisis">Crisis session — safety assessment and stabilisation</option>
               </select>
             </div>
             <div className="field">
@@ -465,7 +486,6 @@ function SoloScreen({ config, onEnd }) {
     mutedRef.current = next;
     setMuted(next);
     if (next && talkingRef.current) {
-      // Stop talking if muting
       talkingRef.current = false;
       setTalking(false);
       try { recRef.current && recRef.current.stop(); } catch(e) {}
@@ -500,7 +520,6 @@ function SoloScreen({ config, onEnd }) {
       if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; }
     };
     rec.onend = function() {
-      // Only restart if still in talking mode
       if (talkingRef.current) {
         setTimeout(function() { try { rec.start(); } catch(e) {} }, 100);
       }
@@ -517,10 +536,7 @@ function SoloScreen({ config, onEnd }) {
     setTalking(true);
     setIndText("Listening — press Done when finished");
     setDotState("listening");
-
-    if (!recRef.current) {
-      setupRec();
-    }
+    if (!recRef.current) { setupRec(); }
     try { recRef.current.start(); } catch(e) {}
   }
 
@@ -530,7 +546,6 @@ function SoloScreen({ config, onEnd }) {
     setTalking(false);
     setInterim("");
     try { recRef.current && recRef.current.stop(); } catch(e) {}
-
     const said = bufferRef.current.trim();
     bufferRef.current = "";
     if (said) {
@@ -555,7 +570,7 @@ function SoloScreen({ config, onEnd }) {
 
     try {
       const reply = await callAPI("/api/chat", {
-        system: buildClientSystem(config.modality, config.issue, personalityRef.current),
+        system: buildClientSystem(config.modality, config.issue, personalityRef.current, config.sessionType || "intake"),
         messages: history,
       });
       addLine(reply, "client");
@@ -586,14 +601,13 @@ function SoloScreen({ config, onEnd }) {
     async function init() {
       try {
         const reply = await callAPI("/api/chat", {
-          system: buildClientSystem(config.modality, config.issue, personalityRef.current),
+          system: buildClientSystem(config.modality, config.issue, personalityRef.current, config.sessionType || "intake"),
           messages: [{ role: "user", content: "You have just walked into the therapy room and sat down. The therapist is about to greet you. Say hello naturally and nothing more. Do not mention why you are here. One sentence only." }],
         });
         addLine(reply, "client");
         setClientReply(reply);
         setDotState("client");
         setIndText("Session in progress — press Start talking when ready");
-
         if (config.respMode === "voice") {
           speakText(reply, function() { setClientReady(true); });
         } else {
@@ -625,6 +639,8 @@ function SoloScreen({ config, onEnd }) {
               <span className="badge">{config.modality}</span>
               {" "}
               <span className="badge">{config.issue}</span>
+              {" "}
+              <span className="badge">{config.sessionType || "intake"}</span>
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -642,25 +658,16 @@ function SoloScreen({ config, onEnd }) {
           <div className="ind-text">{muted ? "Mic muted — client cannot hear you" : indText}</div>
         </div>
         {talking && interim && (
-          <div className="interim" style={{ marginTop: "0.5rem", color: "var(--text-primary)" }}>{interim}</div>
+          <div className="interim" style={{ marginTop: "0.5rem" }}>{interim}</div>
         )}
         {!muted && clientReady && (
           <div style={{ marginTop: "0.75rem" }}>
             {!talking ? (
-              <button
-                className="btn primary"
-                onClick={startTalking}
-                disabled={false}
-style={{ opacity: 1 }}
-              >
+              <button className="btn primary" onClick={startTalking}>
                 Start talking
               </button>
             ) : (
-              <button
-                className="btn"
-                onClick={stopTalking}
-                style={{ borderColor: "#D85A30", color: "#D85A30" }}
-              >
+              <button className="btn" onClick={stopTalking} style={{ borderColor: "#D85A30", color: "#D85A30" }}>
                 Done — send to client
               </button>
             )}
@@ -705,7 +712,7 @@ style={{ opacity: 1 }}
 function ReviewScreen({ config, transcript, onReset }) {
   const [step, setStep] = useState("choose");
   const [reviewText, setReviewText] = useState("");
-  const [sessionType, setSessionType] = useState("intake");
+  const sessionType = config.sessionType || "intake";
 
   async function generate(mode) {
     setStep("loading");
@@ -738,19 +745,9 @@ function ReviewScreen({ config, transcript, onReset }) {
       {step === "choose" && (
         <div className="card">
           <div style={{ fontSize: "0.95rem", marginBottom: "1rem", color: "var(--text2)" }}>
-            Before your review — what kind of session was this?
+            How would you like to receive your clinical review?
           </div>
-          <div className="field">
-            <label>Session type</label>
-            <select value={sessionType} onChange={function(e) { setSessionType(e.target.value); }}>
-              <option value="intake">Intake / first session — rapport building, history gathering</option>
-              <option value="early">Early session — establishing goals, building alliance</option>
-              <option value="mid">Mid-therapy — active intervention and technique work</option>
-              <option value="closing">Closing session — consolidation and termination</option>
-              <option value="crisis">Crisis session — safety assessment and stabilisation</option>
-            </select>
-          </div>
-          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+          <div style={{ display: "flex", gap: "0.75rem" }}>
             <button className="btn" style={{ flex: 1 }} onClick={function() { generate("text"); }}>Written only</button>
             <button className="btn" style={{ flex: 1 }} onClick={function() { generate("voice"); }}>Read aloud and written</button>
           </div>
