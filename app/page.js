@@ -565,6 +565,8 @@ function SoloScreen({ config, onEnd }) {
 
       function afterSpeak() {
         respondingRef.current = false;
+        setDotState("client");
+        setIndText("Session in progress — press Start talking when ready");
       }
 
       if (config.respMode === "voice") {
