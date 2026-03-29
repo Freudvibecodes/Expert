@@ -219,7 +219,7 @@ function SetupScreen({ onStart }) {
         {mode === "solo" && (
           <div>
             <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
-              Practice solo. Claude plays a real client with a randomised personality. Receive a full clinical review when you close the session.
+              Practice solo. Claude plays a real client with a randomised personality. Press <strong>Start talking</strong> to speak, press <strong>Done</strong> when finished. Receive a full clinical review when you close the session.
             </p>
             <div className="field">
               <label>Modality to practise</label>
@@ -436,15 +436,16 @@ function SoloScreen({ config, onEnd }) {
   const [dotState, setDotState] = useState("responding");
   const [clientReply, setClientReply] = useState(null);
   const [muted, setMuted] = useState(false);
+  const [talking, setTalking] = useState(false);
+  const [clientReady, setClientReady] = useState(false);
 
   const recRef = useRef(null);
-  const activeRef = useRef(false);
   const respondingRef = useRef(false);
   const mutedRef = useRef(false);
+  const talkingRef = useRef(false);
   const convRef = useRef([]);
   const personalityRef = useRef(PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)]);
-  const speechTimerRef = useRef(null);
-  const therapistBufferRef = useRef("");
+  const bufferRef = useRef("");
   const convBoxRef = useRef(null);
 
   const addLine = useCallback(function(text, role) {
@@ -463,17 +464,17 @@ function SoloScreen({ config, onEnd }) {
     const next = !mutedRef.current;
     mutedRef.current = next;
     setMuted(next);
-    if (next) {
+    if (next && talkingRef.current) {
+      // Stop talking if muting
+      talkingRef.current = false;
+      setTalking(false);
       try { recRef.current && recRef.current.stop(); } catch(e) {}
-    } else {
-      activeRef.current = true;
-      try { recRef.current && recRef.current.start(); } catch(e) {}
     }
   }
 
-  function startMic() {
+  function setupRec() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { setIndText("Voice not supported — please use Chrome."); return; }
+    if (!SR) { setIndText("Voice not supported — please use Chrome."); return null; }
     const rec = new SR();
     rec.continuous = true;
     rec.interimResults = true;
@@ -481,7 +482,7 @@ function SoloScreen({ config, onEnd }) {
     recRef.current = rec;
 
     rec.onresult = function(e) {
-      if (respondingRef.current || mutedRef.current) return;
+      if (!talkingRef.current) return;
       let interimText = "";
       let finalText = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -490,37 +491,59 @@ function SoloScreen({ config, onEnd }) {
       }
       setInterim(interimText);
       if (finalText) {
-        setInterim("");
-        therapistBufferRef.current += " " + finalText.trim();
-        clearTimeout(speechTimerRef.current);
-        speechTimerRef.current = setTimeout(function() {
-          const said = therapistBufferRef.current.trim();
-          therapistBufferRef.current = "";
-          if (said) handleTherapist(said);
-        }, 3500);
+        bufferRef.current += " " + finalText.trim();
+        setInterim(bufferRef.current.trim());
       }
     };
 
     rec.onerror = function(e) {
       if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; }
-      if (activeRef.current && !respondingRef.current && !mutedRef.current) {
-        setTimeout(function() { try { rec.start(); } catch(e) {} }, 800);
-      }
     };
     rec.onend = function() {
-      if (activeRef.current && !respondingRef.current && !mutedRef.current) {
-        setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
+      // Only restart if still in talking mode
+      if (talkingRef.current) {
+        setTimeout(function() { try { rec.start(); } catch(e) {} }, 100);
       }
     };
 
-    try { rec.start(); } catch(e) {}
+    return rec;
+  }
+
+  function startTalking() {
+    if (respondingRef.current || mutedRef.current || !clientReady) return;
+    bufferRef.current = "";
+    setInterim("");
+    talkingRef.current = true;
+    setTalking(true);
+    setIndText("Listening — press Done when finished");
+    setDotState("listening");
+
+    if (!recRef.current) {
+      setupRec();
+    }
+    try { recRef.current.start(); } catch(e) {}
+  }
+
+  function stopTalking() {
+    if (!talkingRef.current) return;
+    talkingRef.current = false;
+    setTalking(false);
+    setInterim("");
+    try { recRef.current && recRef.current.stop(); } catch(e) {}
+
+    const said = bufferRef.current.trim();
+    bufferRef.current = "";
+    if (said) {
+      handleTherapist(said);
+    } else {
+      setIndText("Session in progress — press Start talking when ready");
+      setDotState("client");
+    }
   }
 
   async function handleTherapist(text) {
     if (respondingRef.current) return;
     respondingRef.current = true;
-    activeRef.current = false;
-    try { recRef.current.stop(); } catch(e) {}
     addLine(text, "therapist");
     setDotState("responding");
     setIndText("Client is thinking...");
@@ -538,14 +561,10 @@ function SoloScreen({ config, onEnd }) {
       addLine(reply, "client");
       setClientReply(reply);
       setDotState("client");
-      setIndText("Session in progress — you are the therapist");
+      setIndText("Session in progress — press Start talking when ready");
 
       function afterSpeak() {
         respondingRef.current = false;
-        if (!mutedRef.current) {
-          activeRef.current = true;
-          try { recRef.current.start(); } catch(e) {}
-        }
       }
 
       if (config.respMode === "voice") {
@@ -556,12 +575,12 @@ function SoloScreen({ config, onEnd }) {
     } catch(e) {
       setClientReply("Connection issue — please try again.");
       respondingRef.current = false;
-      activeRef.current = true;
-      try { recRef.current.start(); } catch(e) {}
+      setIndText("Session in progress — press Start talking when ready");
     }
   }
 
   useEffect(function() {
+    setupRec();
     async function init() {
       try {
         const reply = await callAPI("/api/chat", {
@@ -571,17 +590,12 @@ function SoloScreen({ config, onEnd }) {
         addLine(reply, "client");
         setClientReply(reply);
         setDotState("client");
-        setIndText("Session in progress — you are the therapist");
-
-        function startListening() {
-          activeRef.current = true;
-          startMic();
-        }
+        setIndText("Session in progress — press Start talking when ready");
 
         if (config.respMode === "voice") {
-          speakText(reply, startListening);
+          speakText(reply, function() { setClientReady(true); });
         } else {
-          startListening();
+          setClientReady(true);
         }
       } catch(e) {
         setIndText("Connection issue — please refresh and try again.");
@@ -591,9 +605,8 @@ function SoloScreen({ config, onEnd }) {
   }, []);
 
   function handleEnd() {
-    activeRef.current = false;
-    clearTimeout(speechTimerRef.current);
-    try { recRef.current.stop(); } catch(e) {}
+    talkingRef.current = false;
+    try { recRef.current && recRef.current.stop(); } catch(e) {}
     window.speechSynthesis && window.speechSynthesis.cancel();
     onEnd(convRef.current.map(function(l) {
       return (l.role === "therapist" ? "Therapist: " : "Client: ") + l.text;
@@ -620,16 +633,39 @@ function SoloScreen({ config, onEnd }) {
           </div>
         </div>
       </div>
+
       <div className="card">
         <div className="indicator">
           <div className={"dot " + (muted ? "idle" : dotState)} />
           <div className="ind-text">{muted ? "Mic muted — client cannot hear you" : indText}</div>
         </div>
-        {!muted && interim && <div className="interim">{interim}</div>}
-        <div className="hint" style={{ marginTop: "0.5rem" }}>
-          {muted ? "Muted for side conversation. Unmute mic when ready to continue." : "Speak naturally — the microphone is always on. The client responds after you pause."}
-        </div>
+        {talking && interim && (
+          <div className="interim" style={{ marginTop: "0.5rem", color: "var(--text-primary)" }}>{interim}</div>
+        )}
+        {!muted && clientReady && (
+          <div style={{ marginTop: "0.75rem" }}>
+            {!talking ? (
+              <button
+                className="btn primary"
+                onClick={startTalking}
+                disabled={respondingRef.current}
+                style={{ opacity: respondingRef.current ? 0.4 : 1 }}
+              >
+                Start talking
+              </button>
+            ) : (
+              <button
+                className="btn"
+                onClick={stopTalking}
+                style={{ borderColor: "#D85A30", color: "#D85A30" }}
+              >
+                Done — send to client
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
       <div className="card">
         <div className="section-label">Session conversation</div>
         <div className="transcript-wrap" ref={convBoxRef}>
@@ -648,6 +684,7 @@ function SoloScreen({ config, onEnd }) {
           }
         </div>
       </div>
+
       {clientReply && (
         <div className="card">
           <div className="response-area">
