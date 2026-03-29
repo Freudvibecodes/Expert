@@ -183,6 +183,7 @@ function SetupScreen({ onStart }) {
   const [mode, setMode] = useState("group");
   const [gModality, setGModality] = useState("");
   const [gRole, setGRole] = useState("therapist");
+  const [gSessionType, setGSessionType] = useState("intake");
   const [sModality, setSModality] = useState("");
   const [sIssue, setSIssue] = useState("Randomised — surprise me");
   const [sRespMode, setSRespMode] = useState("voice");
@@ -191,7 +192,7 @@ function SetupScreen({ onStart }) {
   function handleStart() {
     if (mode === "group") {
       if (!gModality) { alert("Please select a modality."); return; }
-      onStart({ mode: "group", modality: gModality, role: gRole });
+      onStart({ mode: "group", modality: gModality, role: gRole, sessionType: gSessionType });
     } else {
       if (!sModality) { alert("Please select a modality."); return; }
       onStart({ mode: "solo", modality: sModality, issue: sIssue, respMode: sRespMode, sessionType: sSessionType });
@@ -220,6 +221,16 @@ function SetupScreen({ onStart }) {
               <select value={gModality} onChange={function(e) { setGModality(e.target.value); }}>
                 <option value="">Select modality...</option>
                 {MODALITIES.map(function(m) { return <option key={m}>{m}</option>; })}
+              </select>
+            </div>
+            <div className="field">
+              <label>Session type</label>
+              <select value={gSessionType} onChange={function(e) { setGSessionType(e.target.value); }}>
+                <option value="intake">Intake / first session — rapport building, history gathering</option>
+                <option value="early">Early session — establishing goals, building alliance</option>
+                <option value="mid">Mid-therapy — active intervention and technique work</option>
+                <option value="closing">Closing session — consolidation and termination</option>
+                <option value="crisis">Crisis session — safety assessment and stabilisation</option>
               </select>
             </div>
             <div className="field">
@@ -447,6 +458,8 @@ function GroupScreen({ config, onEnd }) {
               <span className="badge">{config.modality}</span>
               {" "}
               <span className="badge">{config.role}</span>
+              {" "}
+              <span className="badge">{config.sessionType || "intake"}</span>
             </div>
           </div>
           <button className="btn btn-sm danger" onClick={handleEnd}>End and review</button>
