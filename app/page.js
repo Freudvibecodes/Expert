@@ -79,7 +79,7 @@ Rules:
 4. Show emotional complexity — hesitation, deflection, moments of vulnerability followed by pulling back.
 5. Never break character. You are the client throughout the entire session.
 6. When the therapist closes the session properly, respond naturally as a client would. Do not initiate the ending yourself.
-7. Speak only words the client would say out loud. No asterisks, no stage directions, no narration like shifts in chair or pauses. Pure spoken dialogue only.`;
+7. You may use asterisks to show body language or non-verbal cues like *pauses* or *looks away* — but never narrate your own internal thoughts. Only observable behaviour.`;
 }
 
 async function callAPI(endpoint, body) {
@@ -114,29 +114,41 @@ function getBestVoice() {
     "Microsoft Aria Online (Natural)",
     "Microsoft Jenny Online (Natural)",
     "Microsoft Guy Online (Natural)",
-    "Samantha",
-    "Karen",
-    "Daniel",
+    "Samantha","Karen","Daniel",
   ];
-  for (const name of preferred) {
-    const v = voices.find(v => v.name === name);
+  for (var i = 0; i < preferred.length; i++) {
+    var v = voices.find(function(v) { return v.name === preferred[i]; });
     if (v) return v;
   }
-  return voices.find(v => v.lang.startsWith("en") && !v.name.toLowerCase().includes("compact")) || null;
+  return voices.find(function(v) { return v.lang.startsWith("en") && !v.name.toLowerCase().includes("compact"); }) || null;
 }
 
 function speakText(text, cb) {
   if (!window.speechSynthesis) { cb && cb(); return; }
-  const spokenText = text.replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
-  const utt = new SpeechSynthesisUtterance(spokenText);
-  const voice = getBestVoice();
-  if (voice) utt.voice = voice;
-  utt.rate = 0.88;
-  utt.pitch = 1.05;
-  utt.volume = 1;
-  utt.onend = cb;
-  utt.onerror = cb;
-  window.speechSynthesis.speak(utt);
+  window.speechSynthesis.cancel();
+  var spokenText = text.replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
+
+  function doSpeak() {
+    var utt = new SpeechSynthesisUtterance(spokenText);
+    var voice = getBestVoice();
+    if (voice) utt.voice = voice;
+    utt.rate = 0.88;
+    utt.pitch = 1.05;
+    utt.volume = 1;
+    utt.onend = cb;
+    utt.onerror = cb;
+    window.speechSynthesis.speak(utt);
+  }
+
+  var voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    doSpeak();
+  } else {
+    window.speechSynthesis.onvoiceschanged = function() {
+      window.speechSynthesis.onvoiceschanged = null;
+      doSpeak();
+    };
+  }
 }
 
 // ── SETUP ─────────────────────────────────────────────────────
@@ -166,8 +178,8 @@ function SetupScreen({ onStart }) {
       </div>
       <div className="card">
         <div className="tabs">
-          <button className={"tab" + (mode === "group" ? " active" : "")} onClick={() => setMode("group")}>Group Supervision</button>
-          <button className={"tab" + (mode === "solo" ? " active" : "")} onClick={() => setMode("solo")}>Solo Practice</button>
+          <button className={"tab" + (mode === "group" ? " active" : "")} onClick={function() { setMode("group"); }}>Group Supervision</button>
+          <button className={"tab" + (mode === "solo" ? " active" : "")} onClick={function() { setMode("solo"); }}>Solo Practice</button>
         </div>
 
         {mode === "group" && (
@@ -242,12 +254,19 @@ function GroupScreen({ config, onEnd }) {
   const qBufferRef = useRef("");
   const silTimerRef = useRef(null);
   const transcriptRef = useRef([]);
+  const transcriptBoxRef = useRef(null);
 
   const addLine = useCallback(function(text, type) {
     const line = { text: text, type: type, id: Date.now() + Math.random() };
     transcriptRef.current = transcriptRef.current.concat([line]);
     setTranscript(transcriptRef.current.slice());
   }, []);
+
+  useEffect(function() {
+    if (transcriptBoxRef.current) {
+      transcriptBoxRef.current.scrollTop = transcriptBoxRef.current.scrollHeight;
+    }
+  }, [transcript]);
 
   const triggerResponse = useCallback(async function() {
     const q = qBufferRef.current.trim();
@@ -377,7 +396,7 @@ function GroupScreen({ config, onEnd }) {
       </div>
       <div className="card">
         <div className="section-label">Live transcript</div>
-        <div className="transcript-wrap">
+        <div className="transcript-wrap" ref={transcriptBoxRef}>
           {transcript.length === 0
             ? <div className="t-empty">Transcript will appear here as the session unfolds...</div>
             : transcript.map(function(l) { return <div key={l.id} className={"t-line " + l.type}>{l.text}</div>; })
@@ -406,21 +425,43 @@ function SoloScreen({ config, onEnd }) {
   const [dotState, setDotState] = useState("responding");
   const [clientReply, setClientReply] = useState(null);
   const [muted, setMuted] = useState(false);
-  const mutedRef = useRef(false);
 
   const recRef = useRef(null);
   const activeRef = useRef(false);
   const respondingRef = useRef(false);
+  const mutedRef = useRef(false);
   const convRef = useRef([]);
   const personalityRef = useRef(PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)]);
   const speechTimerRef = useRef(null);
   const therapistBufferRef = useRef("");
+  const convBoxRef = useRef(null);
 
   const addLine = useCallback(function(text, role) {
     const line = { text: text, role: role, id: Date.now() + Math.random() };
     convRef.current = convRef.current.concat([line]);
     setConversation(convRef.current.slice());
   }, []);
+
+  // Autoscroll whenever conversation updates
+  useEffect(function() {
+    if (convBoxRef.current) {
+      convBoxRef.current.scrollTop = convBoxRef.current.scrollHeight;
+    }
+  }, [conversation]);
+
+  function toggleMute() {
+    const next = !mutedRef.current;
+    mutedRef.current = next;
+    setMuted(next);
+    if (next) {
+      // Muting — stop the mic so client can't hear you
+      try { recRef.current && recRef.current.stop(); } catch(e) {}
+    } else {
+      // Unmuting — restart the mic
+      activeRef.current = true;
+      try { recRef.current && recRef.current.start(); } catch(e) {}
+    }
+  }
 
   function startMic() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -432,7 +473,7 @@ function SoloScreen({ config, onEnd }) {
     recRef.current = rec;
 
     rec.onresult = function(e) {
-      if (respondingRef.current) return;
+      if (respondingRef.current || mutedRef.current) return;
       let interimText = "";
       let finalText = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -454,11 +495,17 @@ function SoloScreen({ config, onEnd }) {
 
     rec.onerror = function(e) {
       if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; }
-      if (activeRef.current && !respondingRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 800);
+      if (activeRef.current && !respondingRef.current && !mutedRef.current) {
+        setTimeout(function() { try { rec.start(); } catch(e) {} }, 800);
+      }
     };
     rec.onend = function() {
-      if (activeRef.current && !respondingRef.current && !mutedRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
+      // Only restart if active, not responding, and not muted
+      if (activeRef.current && !respondingRef.current && !mutedRef.current) {
+        setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
+      }
     };
+
     try { rec.start(); } catch(e) {}
   }
 
@@ -488,11 +535,13 @@ function SoloScreen({ config, onEnd }) {
 
       function afterSpeak() {
         respondingRef.current = false;
-        activeRef.current = true;
-        try { recRef.current.start(); } catch(e) {}
+        if (!mutedRef.current) {
+          activeRef.current = true;
+          try { recRef.current.start(); } catch(e) {}
+        }
       }
 
-      if (config.respMode === "voice" && !mutedRef.current) {
+      if (config.respMode === "voice") {
         speakText(reply, afterSpeak);
       } else {
         afterSpeak();
@@ -510,7 +559,7 @@ function SoloScreen({ config, onEnd }) {
       try {
         const reply = await callAPI("/api/chat", {
           system: buildClientSystem(config.modality, config.issue, personalityRef.current),
-          messages: [{ role: "user", content: "The therapist has just welcomed you in. You have just sat down. You have not spoken yet. Wait for them to begin. Give a brief natural settling-in response, spoken words only, no asterisks or stage directions." }],
+          messages: [{ role: "user", content: "The therapist has just welcomed you in. You have just sat down. You have not spoken yet. Wait for them to begin. Give a brief natural settling-in response. You may use asterisks for visible body language only." }],
         });
         addLine(reply, "client");
         setClientReply(reply);
@@ -522,7 +571,7 @@ function SoloScreen({ config, onEnd }) {
           startMic();
         }
 
-        if (config.respMode === "voice" && !mutedRef.current) {
+        if (config.respMode === "voice") {
           speakText(reply, startListening);
         } else {
           startListening();
@@ -557,17 +606,7 @@ function SoloScreen({ config, onEnd }) {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button className="btn btn-sm" onClick={function() {
-              const next = !mutedRef.current;
-              mutedRef.current = next;
-              setMuted(next);
-              if (next) {
-                try { recRef.current && recRef.current.stop(); } catch(e) {}
-              } else {
-                activeRef.current = true;
-                try { recRef.current && recRef.current.start(); } catch(e) {}
-              }
-            }}>
+            <button className="btn btn-sm" onClick={toggleMute}>
               {muted ? "Unmute mic" : "Mute mic"}
             </button>
             <button className="btn btn-sm danger" onClick={handleEnd}>End session</button>
@@ -576,15 +615,17 @@ function SoloScreen({ config, onEnd }) {
       </div>
       <div className="card">
         <div className="indicator">
-          <div className={"dot " + dotState} />
-          <div className="ind-text">{indText}</div>
+          <div className={"dot " + (muted ? "idle" : dotState)} />
+          <div className="ind-text">{muted ? "Mic muted — client cannot hear you" : indText}</div>
         </div>
-        {interim && <div className="interim">{interim}</div>}
-        <div className="hint" style={{ marginTop: "0.5rem" }}>Speak naturally — the microphone is always on. The client responds after you pause.</div>
+        {!muted && interim && <div className="interim">{interim}</div>}
+        <div className="hint" style={{ marginTop: "0.5rem" }}>
+          {muted ? "Muted for side conversation. Unmute mic when ready to continue." : "Speak naturally — the microphone is always on. The client responds after you pause."}
+        </div>
       </div>
       <div className="card">
         <div className="section-label">Session conversation</div>
-        <div className="transcript-wrap">
+        <div className="transcript-wrap" ref={convBoxRef}>
           {conversation.length === 0
             ? <div className="t-empty">Session will appear here...</div>
             : conversation.map(function(l) {
