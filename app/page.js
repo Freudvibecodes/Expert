@@ -1230,8 +1230,29 @@ export default function Home() {
   function handleEnd(transcript, duration) { setFinalTranscript(transcript); setFinalDuration(duration || 0); setScreen("review"); }
   function handleReset() { setConfig(null); setFinalTranscript(""); setFinalDuration(0); setScreen("setup"); }
 
+  const [darkMode, setDarkMode] = useState(function() {
+    try {
+      const saved = localStorage.getItem("clinicTheme");
+      if (saved) return saved === "dark";
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } catch(e) { return false; }
+  });
+
+  useEffect(function() {
+    document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
+    try { localStorage.setItem("clinicTheme", darkMode ? "dark" : "light"); } catch(e) {}
+  }, [darkMode]);
+
   return (
     <div className="app">
+      <button
+        className="theme-toggle"
+        onClick={function() { setDarkMode(function(d) { return !d; }); }}
+        title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        aria-label="Toggle dark mode"
+      >
+        {darkMode ? "☀" : "☾"}
+      </button>
       {screen === "name" && <NameScreen onContinue={handleName} />}
       {screen === "history" && <HistoryScreen studentName={studentName} onBack={function() { setScreen("setup"); }} />}
       {screen === "setup" && <SetupScreen studentName={studentName} onStart={handleStart} onHistory={function() { setScreen("history"); }} />}
