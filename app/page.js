@@ -183,7 +183,9 @@ function speakText(text, cb) {
 
 // ── NAME ENTRY ────────────────────────────────────────────────
 function NameScreen({ onContinue }) {
-  const [name, setName] = useState("");
+  const [name, setName] = useState(function() {
+    try { return localStorage.getItem("clinicStudent") || ""; } catch(e) { return ""; }
+  });
   const [pastSessions, setPastSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -197,6 +199,7 @@ function NameScreen({ onContinue }) {
       setPastSessions(data || []);
     } catch(e) { setPastSessions([]); }
     setLoading(false);
+    localStorage.setItem("clinicStudent", name.trim());
     setChecked(true);
   }
 
@@ -987,8 +990,15 @@ function ReviewScreen({ config, transcript, onReset }) {
 
 // ── ROOT ──────────────────────────────────────────────────────
 export default function Home() {
-  const [screen, setScreen] = useState("name");
-  const [studentName, setStudentName] = useState("");
+  const [screen, setScreen] = useState(function() {
+    try {
+      const saved = localStorage.getItem("clinicStudent");
+      return saved ? "setup" : "name";
+    } catch(e) { return "name"; }
+  });
+  const [studentName, setStudentName] = useState(function() {
+    try { return localStorage.getItem("clinicStudent") || ""; } catch(e) { return ""; }
+  });
   const [config, setConfig] = useState(null);
   const [finalTranscript, setFinalTranscript] = useState("");
 
