@@ -330,20 +330,33 @@ function HistoryScreen({ studentName, onBack }) {
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         {sessions.map(function(s) {
           return (
-            <button key={s.id} onClick={function() { setSelected(s); }}
-              style={{ textAlign: "left", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "1rem 1.25rem", cursor: "pointer", fontFamily: "inherit" }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: "0.95rem" }}>{s.modality}</div>
-                  <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 3 }}>
-                    {SESSION_TYPE_LABELS[s.session_type] || s.session_type} · {s.mode === "solo" ? "Solo" : "Group"}
-                    {s.issue && s.issue !== "" ? " · " + s.issue : ""}
+            <div key={s.id} style={{ display: "flex", alignItems: "stretch", gap: "0.5rem" }}>
+              <button onClick={function() { setSelected(s); }}
+                style={{ flex: 1, textAlign: "left", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "1rem 1.25rem", cursor: "pointer", fontFamily: "inherit" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ fontWeight: 500, fontSize: "0.95rem" }}>{s.modality}</div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 3 }}>
+                      {SESSION_TYPE_LABELS[s.session_type] || s.session_type} · {s.mode === "solo" ? "Solo" : "Group"}
+                      {s.issue && s.issue !== "" ? " · " + s.issue : ""}
+                    </div>
                   </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>{formatDate(s.date)}</div>
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>{formatDate(s.date)}</div>
-              </div>
-              {s.review && <div style={{ fontSize: "0.78rem", color: "var(--text3)", marginTop: "0.4rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.review.substring(0, 100)}...</div>}
-            </button>
+                {s.review && <div style={{ fontSize: "0.78rem", color: "var(--text3)", marginTop: "0.4rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.review.substring(0, 100)}...</div>}
+              </button>
+              <button
+                onClick={async function() {
+                  if (!window.confirm("Delete this session? This cannot be undone.")) return;
+                  await fetch("/api/sessions?id=" + s.id + "&student=" + encodeURIComponent(studentName), { method: "DELETE" });
+                  setSessions(function(prev) { return prev.filter(function(x) { return x.id !== s.id; }); });
+                }}
+                style={{ background: "#FDF0F0", border: "1px solid #E8C0C0", borderRadius: 12, padding: "0 0.75rem", cursor: "pointer", color: "#8B2020", fontSize: "1rem", flexShrink: 0 }}
+                title="Delete session"
+              >
+                &#x1F5D1;
+              </button>
+            </div>
           );
         })}
       </div>
