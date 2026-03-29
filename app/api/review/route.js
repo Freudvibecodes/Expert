@@ -1,5 +1,5 @@
 export async function POST(req) {
-  const { transcript, modality, issue, mode, sessionType } = await req.json();
+  const { transcript, modality, issue, mode, sessionType, duration_seconds, intention } = await req.json();
 
   const MODALITY_CONTEXT = {
     SFBT: "Solution-Focused Brief Therapy — miracle question, scaling questions, exception-finding, compliments, future focus.",
@@ -22,14 +22,22 @@ export async function POST(req) {
 
   const SESSION_TYPE_GUIDANCE = {
     intake: "INTAKE SESSION: Do not penalise absence of interventions or techniques. Focus on rapport, warmth, confidentiality handling, question quality, pacing, and how safe the client felt. Mark intervention-heavy dimensions as N/A.",
-    early: "EARLY SESSION: Relationship still forming. Evaluate rapport, alliance building, goal exploration, early modality use. Some techniques expected but not full intervention.",
+    early: "EARLY SESSION: Relationship still forming. Evaluate rapport, alliance building, goal exploration, early modality use.",
     mid: "MID-THERAPY SESSION: Intervention quality and technique execution are central. Evaluate all dimensions fully.",
     closing: "CLOSING SESSION: Evaluate consolidation of gains, termination handling, progress review, client readiness for independence.",
-    crisis: "CRISIS SESSION: Evaluate safety assessment, risk management, stabilisation, empathy under pressure. Standard techniques not expected.",
+    crisis: "CRISIS SESSION: Evaluate safety assessment, risk management, stabilisation, empathy under pressure.",
   };
 
   const sessionLabel = { intake: "Intake", early: "Early", mid: "Mid-therapy", closing: "Closing", crisis: "Crisis" }[sessionType] || "General";
   const sessionGuidance = SESSION_TYPE_GUIDANCE[sessionType] || "";
+
+  const durationStr = duration_seconds > 0
+    ? `Session duration: ${Math.floor(duration_seconds / 60)} minutes ${duration_seconds % 60} seconds.`
+    : "";
+
+  const intentionStr = intention
+    ? `Student's stated intention for this session: "${intention}". Address specifically whether they achieved this intention.`
+    : "";
 
   const system = `You are an expert clinical supervisor reviewing a graduate therapy student's session.
 
@@ -37,12 +45,16 @@ Modality: ${modality}
 ${MODALITY_CONTEXT[modality] || ""}
 ${mode === "solo" && issue ? `Presenting issue: ${issue}` : ""}
 Session type: ${sessionLabel}
+${durationStr}
+${intentionStr}
 ${sessionGuidance}
 
-YOU MUST respond using ONLY the exact JSON format below. Do not add any text before or after the JSON. Do not use markdown. Return raw JSON only.
+YOU MUST respond using ONLY the exact JSON format below. Do not add any text before or after the JSON. Return raw JSON only.
 
 {
   "overview": "2-3 sentences describing the overall character of this session. What kind of therapist showed up? Be specific and grounded.",
+  "duration_note": "${duration_seconds > 0 ? "One sentence commenting on whether the session length was appropriate for this session type and how well time was managed." : ""}",
+  "intention_achieved": "${intention ? "One sentence on whether the student achieved their stated intention and how." : ""}",
   "dimensions": [
     {"name": "Rapport and therapeutic alliance", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "Direct quote or close paraphrase from transcript"},
     {"name": "Modality adherence", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "..."},
@@ -87,7 +99,7 @@ YOU MUST respond using ONLY the exact JSON format below. Do not add any text bef
   "reflection_question": "One specific question for the student to sit with — grounded in this session, not generic."
 }
 
-Fill in EVERY dimension with a real rating and real evidence from the transcript. For dimensions not observable this session, write the rating as N/A and evidence as Not observed in this session. Do not skip any dimension.`;
+Fill in EVERY dimension with a real rating and real evidence. For dimensions not observable, write N/A and Not observed this session. Do not skip any dimension.`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -111,9 +123,6 @@ Fill in EVERY dimension with a real rating and real evidence from the transcript
 
   const data = await response.json();
   let text = data.content?.map((b) => b.text || "").join("") || "";
-
-  // Strip any markdown code fences if present
   text = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
-
   return Response.json({ text });
 }
