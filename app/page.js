@@ -906,6 +906,13 @@ function SoloScreen({ config, onEnd }) {
 function ReviewRenderer({ text }) {
   if (!text) return null;
 
+  let data = null;
+  try {
+    data = JSON.parse(text);
+  } catch(e) {
+    return <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{text}</div>;
+  }
+
   function ratingColor(r) {
     if (!r) return "var(--text2)";
     const rl = r.toLowerCase().trim();
@@ -915,98 +922,118 @@ function ReviewRenderer({ text }) {
     return "var(--text3)";
   }
 
-  function renderTable(lines) {
-    const tableLines = lines.filter(function(l) { return l.trim().startsWith("|"); });
-    const dataLines = tableLines.filter(function(l) { return !l.match(/^[|\s-]+$/); });
-    if (dataLines.length < 2) return null;
-    const headers = dataLines[0].split("|").map(function(h) { return h.trim(); }).filter(Boolean);
-    const rows = dataLines.slice(1).map(function(l) {
-      return l.split("|").map(function(c) { return c.trim(); }).filter(Boolean);
-    }).filter(function(r) { return r.length > 0; });
-    return (
-      <div style={{ overflowX: "auto", marginTop: "0.5rem" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
-          <thead>
-            <tr>{headers.map(function(h, i) {
-              return <th key={i} style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500 }}>{h}</th>;
-            })}</tr>
-          </thead>
-          <tbody>{rows.map(function(row, i) {
-            return (
-              <tr key={i} style={{ borderBottom: "0.5px solid var(--border)", background: i % 2 === 0 ? "transparent" : "var(--surface2)" }}>
-                {row.map(function(cell, j) {
-                  const isRating = j === 1;
-                  return <td key={j} style={{ padding: "8px 10px", color: isRating ? ratingColor(cell) : "var(--text2)", fontWeight: isRating ? 500 : 400, lineHeight: 1.6, verticalAlign: "top" }}>{cell}</td>;
-                })}
-              </tr>
-            );
-          })}</tbody>
-        </table>
-      </div>
-    );
+  function ratingBg(r) {
+    if (!r) return "transparent";
+    const rl = r.toLowerCase().trim();
+    if (rl === "strong") return "#EBF5F0";
+    if (rl === "developing") return "#FDF3E3";
+    if (rl === "needs work") return "#FDF0F0";
+    return "transparent";
   }
 
-  const SECTION_COLORS = {
-    "overview": "var(--text3)",
-    "dimensions table": "#185FA5",
-    "what landed well": "#2D6A4F",
-    "priority focus for next session": "#854F0B",
-    "explore further": "#185FA5",
-    "reflection question": "var(--text3)",
-  };
-
-  const lines = text.split("\n");
-  const sections = [];
-  let current = null;
-
-  lines.forEach(function(line) {
-    const isHeader = line.match(/^#{1,3}\s+/) || line.match(/^[A-Z][A-Z\s]+$/) && line.trim().length > 3 && line.trim().length < 60;
-    const cleanHeader = line.replace(/^#{1,3}\s*/, "").trim();
-    const knownSection = Object.keys(SECTION_COLORS).some(function(k) { return cleanHeader.toLowerCase().includes(k); });
-
-    if ((isHeader && knownSection) || line.trim() === "---") {
-      if (current) sections.push(current);
-      if (line.trim() !== "---") {
-        current = { title: cleanHeader, lines: [] };
-      } else {
-        current = null;
-      }
-    } else if (current) {
-      current.lines.push(line);
-    } else if (sections.length === 0 && line.trim() && !line.match(/^#{1,3}\s+/)) {
-      if (!current) current = { title: "Overview", lines: [] };
-      current.lines.push(line);
-    }
-  });
-  if (current) sections.push(current);
-
-  if (sections.length === 0) {
-    return <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{text}</div>;
-  }
+  const sectionStyle = { marginBottom: "1.75rem" };
+  const labelStyle = { fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.75rem", paddingBottom: "0.4rem", borderBottom: "0.5px solid var(--border)" };
 
   return (
     <div style={{ marginTop: "0.5rem" }}>
-      {sections.map(function(section, idx) {
-        const colorKey = Object.keys(SECTION_COLORS).find(function(k) { return section.title.toLowerCase().includes(k); });
-        const color = colorKey ? SECTION_COLORS[colorKey] : "var(--text3)";
-        const hasTable = section.lines.some(function(l) { return l.trim().startsWith("|"); });
-        return (
-          <div key={idx} style={{ marginBottom: "1.75rem" }}>
-            <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem", paddingBottom: "0.4rem", borderBottom: "0.5px solid var(--border)" }}>{section.title}</div>
-            {hasTable
-              ? renderTable(section.lines)
-              : <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{section.lines.join("\n").trim()}</div>
-            }
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
-function ReviewRendererFallback({ text }) {
-  return (
-    <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{text}</div>
+      {data.overview && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "var(--text3)" }}>Overview</div>
+          <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)" }}>{data.overview}</div>
+        </div>
+      )}
+
+      {data.dimensions && data.dimensions.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "#185FA5" }}>Dimensions</div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500, width: "28%" }}>Dimension</th>
+                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500, width: "12%" }}>Rating</th>
+                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500 }}>Evidence from session</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.dimensions.map(function(d, i) {
+                  return (
+                    <tr key={i} style={{ borderBottom: "0.5px solid var(--border)", background: i % 2 === 0 ? "transparent" : "var(--surface2)" }}>
+                      <td style={{ padding: "8px 10px", color: "var(--text)", fontWeight: 500, verticalAlign: "top", lineHeight: 1.5 }}>{d.name}</td>
+                      <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
+                        <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 500, background: ratingBg(d.rating), color: ratingColor(d.rating), whiteSpace: "nowrap" }}>
+                          {d.rating}
+                        </span>
+                      </td>
+                      <td style={{ padding: "8px 10px", color: "var(--text2)", verticalAlign: "top", lineHeight: 1.6 }}>{d.evidence}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {data.landed_well && data.landed_well.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "#2D6A4F" }}>What landed well</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {data.landed_well.map(function(item, i) {
+              return (
+                <div key={i} style={{ padding: "0.75rem 1rem", background: "#EBF5F0", borderRadius: 8, borderLeft: "3px solid #2D6A4F" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#2D6A4F", fontWeight: 500, marginBottom: "0.3rem", fontStyle: "italic" }}>{item.moment}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.why}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {data.priority_focus && data.priority_focus.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "#854F0B" }}>Priority focus for next session</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {data.priority_focus.map(function(item, i) {
+              return (
+                <div key={i} style={{ padding: "0.75rem 1rem", background: "#FDF3E3", borderRadius: 8, borderLeft: "3px solid #854F0B" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#854F0B", fontWeight: 500, marginBottom: "0.3rem" }}>{item.area}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.suggestion}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {data.explore_further && data.explore_further.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "#185FA5" }}>Explore further</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {data.explore_further.map(function(item, i) {
+              return (
+                <div key={i} style={{ padding: "0.75rem 1rem", background: "#EBF0F8", borderRadius: 8, borderLeft: "3px solid #185FA5" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#185FA5", fontWeight: 500, marginBottom: "0.3rem" }}>{item.concept}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.reason}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {data.reflection_question && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "var(--text3)" }}>Reflection question</div>
+          <div style={{ padding: "1rem 1.25rem", background: "var(--surface2)", borderRadius: 8, fontSize: "0.95rem", lineHeight: 1.7, color: "var(--text)", fontStyle: "italic" }}>
+            {data.reflection_question}
+          </div>
+        </div>
+      )}
+
+    </div>
   );
 }
 
