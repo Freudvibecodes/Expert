@@ -88,31 +88,80 @@ function Typing() {
   return <div className="typing"><div className="tdot" /><div className="tdot" /><div className="tdot" /></div>;
 }
 
-function getBestVoice() {
-  const voices = window.speechSynthesis.getVoices();
-  const preferred = ["Google UK English Female","Google US English","Microsoft Aria Online (Natural)","Microsoft Jenny Online (Natural)","Microsoft Guy Online (Natural)","Samantha","Karen","Daniel"];
+function getBestVoice(voices) {
+  if (!voices || voices.length === 0) return null;
+  // Preferred high-quality voices across Chrome, Safari, iOS
+  const preferred = [
+    "Google UK English Female",
+    "Google US English",
+    "Microsoft Aria Online (Natural)",
+    "Microsoft Jenny Online (Natural)",
+    "Samantha",      // macOS/iOS — warm and natural
+    "Karen",         // macOS Australian
+    "Daniel",        // macOS UK
+    "Moira",         // macOS Irish
+    "Fiona",         // macOS Scottish
+    "Tessa",         // macOS South African
+    "Siri",          // some iOS versions expose this
+  ];
   for (var i = 0; i < preferred.length; i++) {
     var v = voices.find(function(v) { return v.name === preferred[i]; });
     if (v) return v;
   }
-  return voices.find(function(v) { return v.lang.startsWith("en") && !v.name.toLowerCase().includes("compact"); }) || null;
+  // Fallback: any English voice that is not compact/robotic
+  var decent = voices.find(function(v) {
+    return v.lang && v.lang.startsWith("en") &&
+      !v.name.toLowerCase().includes("compact") &&
+      !v.name.toLowerCase().includes("espeak") &&
+      !v.name.toLowerCase().includes("novelty");
+  });
+  if (decent) return decent;
+  // Last resort: any English voice
+  return voices.find(function(v) { return v.lang && v.lang.startsWith("en"); }) || null;
 }
 
 function speakText(text, cb) {
-  if (!window.speechSynthesis) { cb && cb(); return; }
+  if (typeof window === "undefined" || !window.speechSynthesis) { cb && cb(); return; }
   window.speechSynthesis.cancel();
   var spokenText = text.replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
-  function doSpeak() {
+  if (!spokenText) { cb && cb(); return; }
+
+  function doSpeak(voices) {
     var utt = new SpeechSynthesisUtterance(spokenText);
-    var voice = getBestVoice();
+    var voice = getBestVoice(voices);
     if (voice) utt.voice = voice;
-    utt.rate = 0.88; utt.pitch = 1.05; utt.volume = 1;
-    utt.onend = cb; utt.onerror = cb;
+    utt.rate = 0.88; utt.pitch = 1.0; utt.volume = 1;
+    utt.onend = function() { cb && cb(); };
+    utt.onerror = function() { cb && cb(); };
+    // Safari bug: speech sometimes silently hangs — add a timeout fallback
+    var spoken = false;
+    utt.onstart = function() { spoken = true; };
     window.speechSynthesis.speak(utt);
+    // iOS Safari sometimes needs a resume call
+    setTimeout(function() {
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    }, 100);
+    // Fallback if speech never starts after 6 seconds
+    setTimeout(function() {
+      if (!spoken) { window.speechSynthesis.cancel(); cb && cb(); }
+    }, 6000);
   }
+
   var voices = window.speechSynthesis.getVoices();
-  if (voices.length > 0) { doSpeak(); }
-  else { window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.onvoiceschanged = null; doSpeak(); }; }
+  if (voices && voices.length > 0) {
+    doSpeak(voices);
+  } else {
+    // Safari loads voices asynchronously — wait for them
+    var attempts = 0;
+    var interval = setInterval(function() {
+      var v = window.speechSynthesis.getVoices();
+      attempts++;
+      if ((v && v.length > 0) || attempts > 20) {
+        clearInterval(interval);
+        doSpeak(v || []);
+      }
+    }, 100);
+  }
 }
 
 // ── REVIEW RENDERER ───────────────────────────────────────────
@@ -706,7 +755,14 @@ function SetupScreen({ studentName, onStart, onHistory }) {
         )}
 
         {(mode === "group" || mode === "solo") && (
-          <button className="btn primary" onClick={handleStart}>Begin session</button>
+          <div>
+            {typeof window !== "undefined" && !(window.SpeechRecognition || window.webkitSpeechRecognition) && (
+              <div style={{ padding: "0.75rem 1rem", background: "var(--accent2-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--accent2)", marginBottom: "0.75rem", fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.6 }}>
+                <strong style={{ color: "var(--accent2)" }}>Voice sessions work best in Chrome.</strong> Your current browser does not support live microphone transcription. The session will still work but voice features will be limited.
+              </div>
+            )}
+            <button className="btn primary" onClick={handleStart}>Begin session</button>
+          </div>
         )}
         <button className="btn" onClick={onHistory} style={{ marginTop: "0.5rem" }}>View my past sessions</button>
       </div>
@@ -779,7 +835,11 @@ function GroupScreen({ config, onEnd }) {
 
   useEffect(function() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { setIndText("Voice not supported — please use Chrome."); return; }
+    if (!SR) {
+      setIndText("Live voice not supported on this browser. For best results use Chrome on desktop.");
+      setDotState("idle");
+      return;
+    }
     const rec = new SR();
     rec.continuous = true; rec.interimResults = true; rec.lang = "en-US";
     recRef.current = rec;
@@ -814,13 +874,14 @@ function GroupScreen({ config, onEnd }) {
       }
     };
     rec.onerror = function(e) {
-      if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; }
+      if (e.error === "not-allowed") { setIndText("Microphone access denied — please allow mic access in browser settings."); setDotState("idle"); return; }
+      if (e.error === "service-not-allowed") { setIndText("Voice recognition not available on this browser. Please use Chrome for live sessions."); setDotState("idle"); return; }
       if (activeRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 800);
     };
     rec.onend = function() {
       if (activeRef.current && !isResponding) setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
     };
-    try { rec.start(); } catch(e) {}
+    try { rec.start(); } catch(e) { setIndText("Could not start voice recognition. Please use Chrome for live sessions."); setDotState("idle"); }
     return function() { activeRef.current = false; clearTimeout(silTimerRef.current); try { rec.stop(); } catch(e) {} };
   }, [addLine, triggerResponse]);
 
@@ -945,9 +1006,17 @@ function SoloScreen({ config, onEnd }) {
     if (next && talkingRef.current) { talkingRef.current = false; setTalking(false); try { recRef.current && recRef.current.stop(); } catch(e) {} }
   }
 
+  function isSpeechSupported() {
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+
   function setupRec() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { setIndText("Voice not supported — please use Chrome."); return null; }
+    if (!SR) {
+      setIndText("Voice input not supported on this browser. Use Chrome on desktop for push-to-talk.");
+      setDotState("idle");
+      return null;
+    }
     const rec = new SR();
     rec.continuous = true; rec.interimResults = true; rec.lang = "en-US";
     recRef.current = rec;
@@ -961,7 +1030,10 @@ function SoloScreen({ config, onEnd }) {
       setInterim(interimText);
       if (finalText) { bufferRef.current += " " + finalText.trim(); setInterim(bufferRef.current.trim()); }
     };
-    rec.onerror = function(e) { if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; } };
+    rec.onerror = function(e) {
+      if (e.error === "not-allowed") { setIndText("Microphone access denied — please allow mic access in browser settings."); setDotState("idle"); return; }
+      if (e.error === "service-not-allowed") { setIndText("Voice not available on this browser. Please use Chrome."); setDotState("idle"); return; }
+    };
     rec.onend = function() { if (talkingRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 100); };
     return rec;
   }
