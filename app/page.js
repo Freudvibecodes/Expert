@@ -602,6 +602,93 @@ function HistoryScreen({ studentName, onBack }) {
   );
 }
 
+
+// ── WELCOME SCREEN ────────────────────────────────────────────
+function WelcomeScreen({ studentName, onContinue, onHistory }) {
+  const modes = [
+    {
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+          <circle cx="18" cy="7" r="2"/><path d="M21 21v-1.5a3 3 0 0 0-2-2.83"/>
+        </svg>
+      ),
+      label: "Group Supervised Session",
+      color: "var(--blue)",
+      colorLight: "var(--blue-light)",
+      desc: "Practising with classmates or peers? Start here. This mode listens to your entire session and transcribes everything in real time. Whenever you need guidance — say Hey Claude and ask your question. Your supervisor will respond without interrupting the flow of the session. End the session to receive a full clinical review across 26 dimensions.",
+    },
+    {
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20v-1a7 7 0 0 1 14 0v1"/>
+        </svg>
+      ),
+      label: "Solo Session",
+      color: "var(--green)",
+      colorLight: "var(--green-light)",
+      desc: "Practice independently at any time. Claude plays a realistic simulated client — you choose the modality, presenting issue, and session type. Speak naturally and receive responses in real time. At the end, receive a detailed clinical review of your performance. The more sessions you complete, the more your progress is tracked over time.",
+    },
+    {
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/>
+        </svg>
+      ),
+      label: "Training Arena",
+      color: "var(--accent2)",
+      colorLight: "var(--accent2-light)",
+      desc: "A focused skill-building space designed for practicum preparation. Choose from nine targeted drills — case conceptualisation, miracle questions, goal structuring, ethical dilemmas, cognitive distortions, and more. Each mode gives you a real clinical scenario and coaches you through it using Socratic questioning. No answers given — only guided thinking.",
+    },
+    {
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
+        </svg>
+      ),
+      label: "Post-Note Taking Practice",
+      color: "var(--accent)",
+      colorLight: "var(--accent-light)",
+      desc: "Documentation is a core clinical competency — and one of the hardest to practise. This mode gives you a rich client case summary and asks you to write a structured progress note in your chosen format: SOAP, DAP, TARP, or BIRP. Claude reviews your note in detail — identifying what you got right, what needs work, and how to fix it. Use a random case or pull from your own past sessions.",
+    },
+  ];
+
+  return (
+    <div>
+      <div className="header">
+        <h1>Clinical Supervision</h1>
+        <p style={{ marginTop: "0.35rem" }}>Welcome back, <strong style={{ color: "var(--text)" }}>{studentName}</strong></p>
+        <p style={{ fontSize: "0.82rem", color: "var(--text3)", marginTop: "0.25rem" }}>Choose a mode below to get started</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "0.85rem", marginBottom: "1.5rem" }}>
+        {modes.map(function(m, i) {
+          return (
+            <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "1.4rem", boxShadow: "var(--shadow)", display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: m.colorLight, display: "flex", alignItems: "center", justifyContent: "center", color: m.color, flexShrink: 0 }}>
+                  {m.icon}
+                </div>
+                <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text)", lineHeight: 1.3 }}>{m.label}</div>
+              </div>
+              <div style={{ fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.75, flex: 1 }}>{m.desc}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+        <button className="btn primary" onClick={onContinue} style={{ fontSize: "1rem", padding: "1rem" }}>
+          Let's begin →
+        </button>
+        <button className="btn" onClick={onHistory} style={{ fontSize: "0.875rem" }}>
+          View my past sessions
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── SETUP ─────────────────────────────────────────────────────
 function SetupScreen({ studentName, onStart, onHistory }) {
   const [mode, setMode] = useState("group");
@@ -1239,7 +1326,7 @@ function ReviewScreen({ config, transcript, duration, onReset }) {
 // ── ROOT ──────────────────────────────────────────────────────
 export default function Home() {
   const [screen, setScreen] = useState(function() {
-    try { const saved = localStorage.getItem("clinicStudent"); return saved ? "setup" : "name"; } catch(e) { return "name"; }
+    try { const saved = localStorage.getItem("clinicStudent"); return saved ? "welcome" : "name"; } catch(e) { return "name"; }
   });
   const [studentName, setStudentName] = useState(function() {
     try { return localStorage.getItem("clinicStudent") || ""; } catch(e) { return ""; }
@@ -1248,10 +1335,10 @@ export default function Home() {
   const [finalTranscript, setFinalTranscript] = useState("");
   const [finalDuration, setFinalDuration] = useState(0);
 
-  function handleName(name, action) { setStudentName(name); if (action === "history") setScreen("history"); else setScreen("setup"); }
+  function handleName(name, action) { setStudentName(name); if (action === "history") setScreen("history"); else setScreen("welcome"); }
   function handleStart(cfg) { setConfig(cfg); setScreen(cfg.mode); }
   function handleEnd(transcript, duration) { setFinalTranscript(transcript); setFinalDuration(duration || 0); setScreen("review"); }
-  function handleReset() { setConfig(null); setFinalTranscript(""); setFinalDuration(0); setScreen("setup"); }
+  function handleReset() { setConfig(null); setFinalTranscript(""); setFinalDuration(0); setScreen("welcome"); }
 
   const [darkMode, setDarkMode] = useState(function() {
     try {
@@ -1278,6 +1365,7 @@ export default function Home() {
       </button>
       {screen === "name" && <NameScreen onContinue={handleName} />}
       {screen === "history" && <HistoryScreen studentName={studentName} onBack={function() { setScreen("setup"); }} />}
+      {screen === "welcome" && <WelcomeScreen studentName={studentName} onContinue={function() { setScreen("setup"); }} onHistory={function() { setScreen("history"); }} />}
       {screen === "setup" && <SetupScreen studentName={studentName} onStart={handleStart} onHistory={function() { setScreen("history"); }} />}
       {screen === "group" && <GroupScreen config={config} onEnd={handleEnd} />}
       {screen === "solo" && <SoloScreen config={config} onEnd={handleEnd} />}
