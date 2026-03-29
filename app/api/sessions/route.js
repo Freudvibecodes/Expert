@@ -20,8 +20,6 @@ async function supabase(method, path, body) {
   return text ? JSON.parse(text) : null;
 }
 
-// GET /api/sessions?student=name — get sessions for a student
-// GET /api/sessions?all=true&password=xxx — get all sessions (professor)
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const student = searchParams.get("student");
@@ -45,7 +43,6 @@ export async function GET(req) {
   return Response.json({ error: "Missing parameters" }, { status: 400 });
 }
 
-// POST /api/sessions — save a session
 export async function POST(req) {
   const body = await req.json();
   const { student_name, mode, modality, session_type, issue, transcript, review } = body;
@@ -65,4 +62,19 @@ export async function POST(req) {
   });
 
   return Response.json(data);
+}
+
+export async function DELETE(req) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  const student = searchParams.get("student");
+
+  if (!id || !student) {
+    return Response.json({ error: "Missing id or student" }, { status: 400 });
+  }
+
+  // Only allow deleting your own sessions
+  const encoded = encodeURIComponent(student);
+  await supabase("DELETE", `sessions?id=eq.${id}&student_name=eq.${encoded}`);
+  return Response.json({ success: true });
 }
