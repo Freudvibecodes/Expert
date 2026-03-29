@@ -591,21 +591,30 @@ function SetupScreen({ studentName, onStart, onHistory }) {
       <div className="header"><h1>Clinical Supervision</h1><p>{studentName}</p></div>
       <div className="card">
         <div className="tabs" style={{ flexWrap: "wrap" }}>
-          <button className={"tab" + (mode === "group" ? " active" : "")} onClick={function() { setMode("group"); }} style={{ minWidth: 0 }}>
-            <div>&#128101;</div>
-            <div style={{ fontSize: "0.78rem" }}>Group</div>
+          <button className={"tab" + (mode === "group" ? " active" : "")} onClick={function() { setMode("group"); }}>
+            <div style={{ fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.35rem" }}>Group Supervised Session</div>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+              <circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+              <circle cx="18" cy="7" r="2"/><path d="M21 21v-1.5a3 3 0 0 0-2-2.83"/>
+            </svg>
           </button>
-          <button className={"tab" + (mode === "solo" ? " active" : "")} onClick={function() { setMode("solo"); }} style={{ minWidth: 0 }}>
-            <div>&#128100;</div>
-            <div style={{ fontSize: "0.78rem" }}>Solo</div>
+          <button className={"tab" + (mode === "solo" ? " active" : "")} onClick={function() { setMode("solo"); }}>
+            <div style={{ fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.35rem" }}>Solo Session</div>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+              <circle cx="12" cy="8" r="4"/><path d="M4 20v-1a7 7 0 0 1 14 0v1"/>
+            </svg>
           </button>
-          <button className={"tab" + (mode === "arena" ? " active" : "")} onClick={function() { setMode("arena"); }} style={{ minWidth: 0 }}>
-            <div>&#9876;</div>
-            <div style={{ fontSize: "0.78rem" }}>Arena</div>
+          <button className={"tab" + (mode === "arena" ? " active" : "")} onClick={function() { setMode("arena"); }}>
+            <div style={{ fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.35rem" }}>Training Arena</div>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+              <path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M2 2l20 20"/>
+            </svg>
           </button>
-          <button className={"tab" + (mode === "notes" ? " active" : "")} onClick={function() { setMode("notes"); }} style={{ minWidth: 0 }}>
-            <div>&#128221;</div>
-            <div style={{ fontSize: "0.78rem" }}>Notes</div>
+          <button className={"tab" + (mode === "notes" ? " active" : "")} onClick={function() { setMode("notes"); }}>
+            <div style={{ fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.35rem" }}>Post-Note Taking Practice</div>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
+            </svg>
           </button>
         </div>
 
