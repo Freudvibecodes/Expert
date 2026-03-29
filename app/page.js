@@ -1,5 +1,8 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
+import TrainingArena from "./TrainingArena";
+import NotesPractice from "./NotesPractice";
+import { MODALITIES, ISSUES, PERSONALITIES, MODALITY_CONTEXT, RESOURCES } from "./constants";
 
 const MODALITIES = [
   "SFBT","CBT","Narrative Therapy","Adlerian Therapy","Structural Family Therapy",
@@ -662,7 +665,7 @@ function SetupScreen({ studentName, onStart, onHistory }) {
     if (mode === "group") {
       if (!gModality) { alert("Please select a modality."); return; }
       onStart({ mode: "group", modality: gModality, role: gRole, sessionType: gSessionType, studentName, intention: gIntention });
-    } else {
+    } else if (mode === "solo") {
       if (!sModality) { alert("Please select a modality."); return; }
       onStart({ mode: "solo", modality: sModality, issue: sIssue, respMode: sRespMode, sessionType: sSessionType, studentName, intention: sIntention });
     }
@@ -682,9 +685,23 @@ function SetupScreen({ studentName, onStart, onHistory }) {
     <div>
       <div className="header"><h1>Clinical Supervision</h1><p>{studentName}</p></div>
       <div className="card">
-        <div className="tabs">
-          <button className={"tab" + (mode === "group" ? " active" : "")} onClick={function() { setMode("group"); }}>Group Supervision</button>
-          <button className={"tab" + (mode === "solo" ? " active" : "")} onClick={function() { setMode("solo"); }}>Solo Practice</button>
+        <div className="tabs" style={{ flexWrap: "wrap" }}>
+          <button className={"tab" + (mode === "group" ? " active" : "")} onClick={function() { setMode("group"); }} style={{ minWidth: 0 }}>
+            <div>&#128101;</div>
+            <div style={{ fontSize: "0.78rem" }}>Group</div>
+          </button>
+          <button className={"tab" + (mode === "solo" ? " active" : "")} onClick={function() { setMode("solo"); }} style={{ minWidth: 0 }}>
+            <div>&#128100;</div>
+            <div style={{ fontSize: "0.78rem" }}>Solo</div>
+          </button>
+          <button className={"tab" + (mode === "arena" ? " active" : "")} onClick={function() { setMode("arena"); }} style={{ minWidth: 0 }}>
+            <div>&#9876;</div>
+            <div style={{ fontSize: "0.78rem" }}>Arena</div>
+          </button>
+          <button className={"tab" + (mode === "notes" ? " active" : "")} onClick={function() { setMode("notes"); }} style={{ minWidth: 0 }}>
+            <div>&#128221;</div>
+            <div style={{ fontSize: "0.78rem" }}>Notes</div>
+          </button>
         </div>
 
         {mode === "group" && (
@@ -756,7 +773,27 @@ function SetupScreen({ studentName, onStart, onHistory }) {
           </div>
         )}
 
-        <button className="btn primary" onClick={handleStart}>Begin session</button>
+        {mode === "arena" && (
+          <div>
+            <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
+              Drill specific clinical skills — case conceptualisation, miracle questions, goal structuring, ethical dilemmas, and more. Each mode gives you a scenario and coaches you through it.
+            </p>
+            <TrainingArena />
+          </div>
+        )}
+
+        {mode === "notes" && (
+          <div>
+            <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
+              Practice writing clinical progress notes in SOAP, DAP, TARP, or BIRP format. Use a random case or one of your past sessions. Claude reviews your note with specific, structured feedback.
+            </p>
+            <NotesPractice studentSessions={[]} />
+          </div>
+        )}
+
+        {(mode === "group" || mode === "solo") && (
+          <button className="btn primary" onClick={handleStart}>Begin session</button>
+        )}
         <button className="btn" onClick={onHistory} style={{ marginTop: "0.5rem" }}>View my past sessions</button>
       </div>
     </div>
