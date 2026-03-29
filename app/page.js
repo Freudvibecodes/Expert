@@ -489,7 +489,7 @@ function SoloScreen({ config, onEnd }) {
           const said = therapistBufferRef.current.trim();
           therapistBufferRef.current = "";
           if (said) handleTherapist(said);
-        }, 5000);
+        }, 1800);
       }
     };
 
@@ -659,7 +659,6 @@ function SoloScreen({ config, onEnd }) {
 function ReviewScreen({ config, transcript, onReset }) {
   const [step, setStep] = useState("choose");
   const [reviewText, setReviewText] = useState("");
-  const [sessionType, setSessionType] = useState("intake");
 
   async function generate(mode) {
     setStep("loading");
@@ -669,7 +668,6 @@ function ReviewScreen({ config, transcript, onReset }) {
         modality: config.modality,
         issue: config.issue || "",
         mode: config.mode,
-        sessionType: sessionType,
       });
       setReviewText(text);
       setStep("done");
@@ -692,19 +690,9 @@ function ReviewScreen({ config, transcript, onReset }) {
       {step === "choose" && (
         <div className="card">
           <div style={{ fontSize: "0.95rem", marginBottom: "1rem", color: "var(--text2)" }}>
-            Before your review — what kind of session was this?
+            How would you like to receive your clinical review?
           </div>
-          <div className="field">
-            <label>Session type</label>
-            <select value={sessionType} onChange={function(e) { setSessionType(e.target.value); }}>
-              <option value="intake">Intake / first session — rapport building, history gathering</option>
-              <option value="early">Early session — establishing goals, building alliance</option>
-              <option value="mid">Mid-therapy — active intervention and technique work</option>
-              <option value="closing">Closing session — consolidation and termination</option>
-              <option value="crisis">Crisis session — safety assessment and stabilisation</option>
-            </select>
-          </div>
-          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+          <div style={{ display: "flex", gap: "0.75rem" }}>
             <button className="btn" style={{ flex: 1 }} onClick={function() { generate("text"); }}>Written only</button>
             <button className="btn" style={{ flex: 1 }} onClick={function() { generate("voice"); }}>Read aloud and written</button>
           </div>
@@ -727,16 +715,6 @@ function ReviewScreen({ config, transcript, onReset }) {
         <div>
           <div className="card">
             <div className="response-area">
-              <div className="response-label sup">Clinical Review</div>
-              <div className="review-text">{reviewText}</div>
-            </div>
-          </div>
-          <button className="btn" onClick={onReset} style={{ marginTop: "0.5rem" }}>Start new session</button>
-        </div>
-      )}
-    </div>
-  );
-}
               <div className="response-label sup">Clinical Review</div>
               <div className="review-text">{reviewText}</div>
             </div>
