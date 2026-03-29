@@ -906,91 +906,107 @@ function SoloScreen({ config, onEnd }) {
 function ReviewRenderer({ text }) {
   if (!text) return null;
 
-  const sections = text.split(/
----+
-/).map(function(s) { return s.trim(); }).filter(Boolean);
+  function ratingColor(r) {
+    if (!r) return "var(--text2)";
+    const rl = r.toLowerCase().trim();
+    if (rl === "strong") return "#2D6A4F";
+    if (rl === "developing") return "#854F0B";
+    if (rl === "needs work") return "#8B2020";
+    return "var(--text3)";
+  }
 
-  function renderTable(tableText) {
-    const lines = tableText.split("
-").filter(function(l) { return l.trim() && !l.match(/^\|[-\s|]+$/); });
-    if (lines.length < 2) return null;
-    const headers = lines[0].split("|").map(function(h) { return h.trim(); }).filter(Boolean);
-    const rows = lines.slice(1).map(function(l) {
+  function renderTable(lines) {
+    const tableLines = lines.filter(function(l) { return l.trim().startsWith("|"); });
+    const dataLines = tableLines.filter(function(l) { return !l.match(/^[|\s-]+$/); });
+    if (dataLines.length < 2) return null;
+    const headers = dataLines[0].split("|").map(function(h) { return h.trim(); }).filter(Boolean);
+    const rows = dataLines.slice(1).map(function(l) {
       return l.split("|").map(function(c) { return c.trim(); }).filter(Boolean);
-    });
-    const ratingColor = function(r) {
-      if (!r) return "var(--text2)";
-      const rl = r.toLowerCase();
-      if (rl === "strong") return "#2D6A4F";
-      if (rl === "developing") return "#854F0B";
-      if (rl === "needs work") return "#8B2020";
-      if (rl === "n/a") return "var(--text3)";
-      return "var(--text2)";
-    };
+    }).filter(function(r) { return r.length > 0; });
     return (
-      <div style={{ overflowX: "auto", marginTop: "0.75rem" }}>
+      <div style={{ overflowX: "auto", marginTop: "0.5rem" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
           <thead>
-            <tr>
-              {headers.map(function(h, i) {
-                return <th key={i} style={{ textAlign: "left", padding: "8px 10px", borderBottom: "1.5px solid var(--border2)", color: "var(--text2)", fontWeight: 500, whiteSpace: "nowrap" }}>{h}</th>;
-              })}
-            </tr>
+            <tr>{headers.map(function(h, i) {
+              return <th key={i} style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500 }}>{h}</th>;
+            })}</tr>
           </thead>
-          <tbody>
-            {rows.map(function(row, i) {
-              return (
-                <tr key={i} style={{ borderBottom: "0.5px solid var(--border)" }}>
-                  {row.map(function(cell, j) {
-                    const isRating = j === 1;
-                    return (
-                      <td key={j} style={{ padding: "8px 10px", color: isRating ? ratingColor(cell) : "var(--text2)", fontWeight: isRating ? 500 : 400, lineHeight: 1.6, verticalAlign: "top" }}>
-                        {cell}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
+          <tbody>{rows.map(function(row, i) {
+            return (
+              <tr key={i} style={{ borderBottom: "0.5px solid var(--border)", background: i % 2 === 0 ? "transparent" : "var(--surface2)" }}>
+                {row.map(function(cell, j) {
+                  const isRating = j === 1;
+                  return <td key={j} style={{ padding: "8px 10px", color: isRating ? ratingColor(cell) : "var(--text2)", fontWeight: isRating ? 500 : 400, lineHeight: 1.6, verticalAlign: "top" }}>{cell}</td>;
+                })}
+              </tr>
+            );
+          })}</tbody>
         </table>
       </div>
     );
   }
 
-  function renderSection(section) {
-    const lines = section.split("
-");
-    const title = lines[0].replace(/^#+\s*/, "").trim();
-    const body = lines.slice(1).join("
-").trim();
-    const hasTable = body.includes("|");
+  const SECTION_COLORS = {
+    "overview": "var(--text3)",
+    "dimensions table": "#185FA5",
+    "what landed well": "#2D6A4F",
+    "priority focus for next session": "#854F0B",
+    "explore further": "#185FA5",
+    "reflection question": "var(--text3)",
+  };
 
-    const sectionColors = {
-      "OVERVIEW": "var(--text3)",
-      "DIMENSIONS TABLE": "#185FA5",
-      "WHAT LANDED WELL": "#2D6A4F",
-      "PRIORITY FOCUS FOR NEXT SESSION": "#854F0B",
-      "EXPLORE FURTHER": "#185FA5",
-      "REFLECTION QUESTION": "var(--text3)",
-    };
+  const lines = text.split("\n");
+  const sections = [];
+  let current = null;
 
-    const color = sectionColors[title.toUpperCase()] || "var(--text3)";
+  lines.forEach(function(line) {
+    const isHeader = line.match(/^#{1,3}\s+/) || line.match(/^[A-Z][A-Z\s]+$/) && line.trim().length > 3 && line.trim().length < 60;
+    const cleanHeader = line.replace(/^#{1,3}\s*/, "").trim();
+    const knownSection = Object.keys(SECTION_COLORS).some(function(k) { return cleanHeader.toLowerCase().includes(k); });
 
-    return (
-      <div key={title} style={{ marginBottom: "1.5rem" }}>
-        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem" }}>{title}</div>
-        {hasTable ? renderTable(body) : (
-          <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{body}</div>
-        )}
-      </div>
-    );
+    if ((isHeader && knownSection) || line.trim() === "---") {
+      if (current) sections.push(current);
+      if (line.trim() !== "---") {
+        current = { title: cleanHeader, lines: [] };
+      } else {
+        current = null;
+      }
+    } else if (current) {
+      current.lines.push(line);
+    } else if (sections.length === 0 && line.trim() && !line.match(/^#{1,3}\s+/)) {
+      if (!current) current = { title: "Overview", lines: [] };
+      current.lines.push(line);
+    }
+  });
+  if (current) sections.push(current);
+
+  if (sections.length === 0) {
+    return <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{text}</div>;
   }
 
   return (
     <div style={{ marginTop: "0.5rem" }}>
-      {sections.map(renderSection)}
+      {sections.map(function(section, idx) {
+        const colorKey = Object.keys(SECTION_COLORS).find(function(k) { return section.title.toLowerCase().includes(k); });
+        const color = colorKey ? SECTION_COLORS[colorKey] : "var(--text3)";
+        const hasTable = section.lines.some(function(l) { return l.trim().startsWith("|"); });
+        return (
+          <div key={idx} style={{ marginBottom: "1.75rem" }}>
+            <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem", paddingBottom: "0.4rem", borderBottom: "0.5px solid var(--border)" }}>{section.title}</div>
+            {hasTable
+              ? renderTable(section.lines)
+              : <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{section.lines.join("\n").trim()}</div>
+            }
+          </div>
+        );
+      })}
     </div>
+  );
+}
+
+function ReviewRendererFallback({ text }) {
+  return (
+    <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{text}</div>
   );
 }
 
