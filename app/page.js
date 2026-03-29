@@ -901,6 +901,99 @@ function SoloScreen({ config, onEnd }) {
   );
 }
 
+
+// ── REVIEW RENDERER ───────────────────────────────────────────
+function ReviewRenderer({ text }) {
+  if (!text) return null;
+
+  const sections = text.split(/
+---+
+/).map(function(s) { return s.trim(); }).filter(Boolean);
+
+  function renderTable(tableText) {
+    const lines = tableText.split("
+").filter(function(l) { return l.trim() && !l.match(/^\|[-\s|]+$/); });
+    if (lines.length < 2) return null;
+    const headers = lines[0].split("|").map(function(h) { return h.trim(); }).filter(Boolean);
+    const rows = lines.slice(1).map(function(l) {
+      return l.split("|").map(function(c) { return c.trim(); }).filter(Boolean);
+    });
+    const ratingColor = function(r) {
+      if (!r) return "var(--text2)";
+      const rl = r.toLowerCase();
+      if (rl === "strong") return "#2D6A4F";
+      if (rl === "developing") return "#854F0B";
+      if (rl === "needs work") return "#8B2020";
+      if (rl === "n/a") return "var(--text3)";
+      return "var(--text2)";
+    };
+    return (
+      <div style={{ overflowX: "auto", marginTop: "0.75rem" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+          <thead>
+            <tr>
+              {headers.map(function(h, i) {
+                return <th key={i} style={{ textAlign: "left", padding: "8px 10px", borderBottom: "1.5px solid var(--border2)", color: "var(--text2)", fontWeight: 500, whiteSpace: "nowrap" }}>{h}</th>;
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(function(row, i) {
+              return (
+                <tr key={i} style={{ borderBottom: "0.5px solid var(--border)" }}>
+                  {row.map(function(cell, j) {
+                    const isRating = j === 1;
+                    return (
+                      <td key={j} style={{ padding: "8px 10px", color: isRating ? ratingColor(cell) : "var(--text2)", fontWeight: isRating ? 500 : 400, lineHeight: 1.6, verticalAlign: "top" }}>
+                        {cell}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  function renderSection(section) {
+    const lines = section.split("
+");
+    const title = lines[0].replace(/^#+\s*/, "").trim();
+    const body = lines.slice(1).join("
+").trim();
+    const hasTable = body.includes("|");
+
+    const sectionColors = {
+      "OVERVIEW": "var(--text3)",
+      "DIMENSIONS TABLE": "#185FA5",
+      "WHAT LANDED WELL": "#2D6A4F",
+      "PRIORITY FOCUS FOR NEXT SESSION": "#854F0B",
+      "EXPLORE FURTHER": "#185FA5",
+      "REFLECTION QUESTION": "var(--text3)",
+    };
+
+    const color = sectionColors[title.toUpperCase()] || "var(--text3)";
+
+    return (
+      <div key={title} style={{ marginBottom: "1.5rem" }}>
+        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem" }}>{title}</div>
+        {hasTable ? renderTable(body) : (
+          <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{body}</div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginTop: "0.5rem" }}>
+      {sections.map(renderSection)}
+    </div>
+  );
+}
+
 // ── REVIEW ────────────────────────────────────────────────────
 function ReviewScreen({ config, transcript, onReset }) {
   const [step, setStep] = useState("choose");
@@ -978,7 +1071,7 @@ function ReviewScreen({ config, transcript, onReset }) {
           <div className="card">
             <div className="response-area">
               <div className="response-label sup">Clinical Review</div>
-              <div className="review-text">{reviewText}</div>
+              <ReviewRenderer text={reviewText} />
             </div>
           </div>
           <button className="btn" onClick={onReset} style={{ marginTop: "0.5rem" }}>Start new session</button>
