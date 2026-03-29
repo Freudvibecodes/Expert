@@ -68,38 +68,146 @@ export const MAINTAINING_MECHANISMS = {
 export const NOTE_FORMATS = {
   SOAP: {
     name: "SOAP",
-    sections: ["Subjective", "Objective", "Assessment", "Plan"],
-    guidance: `SOAP Note Format:
-S - SUBJECTIVE: What the client reported — their words, feelings, complaints, concerns. Use quotes where appropriate. What the client brought to session.
-O - OBJECTIVE: Observable, measurable facts. Mental status, appearance, behaviour, affect, any standardized assessments administered. Factual and clinician-observed only.
-A - ASSESSMENT: Clinical interpretation. Progress toward goals, clinical impressions, risk assessment. How is the client responding to treatment?
-P - PLAN: What happens next. Next session date/time, interventions planned, any referrals, homework, or changes to treatment plan.`
+    sections: ["Goal/Outcome/Intervention", "Mental Health Status Exam", "Subjective", "Objective", "Assessment", "Plan"],
+    template: `SOAP Note Template:
+
+Client/ID: _______________
+Date: _______________ Start Time: _______________ End Time: _______________
+Counsellor Name and Credentials: _______________
+
+GOAL / OUTCOME / INTERVENTION:
+[State the treatment goal, outcome being worked toward, and intervention used this session]
+
+MENTAL HEALTH STATUS EXAM:
+[Appearance, behaviour, affect, speech, thought content, orientation, risk]
+
+SUBJECTIVE:
+[What the client reported — their words, feelings, concerns. Use quotes where appropriate.]
+
+OBJECTIVE:
+[Observable, measurable facts only. What the clinician observed — appearance, behaviour, affect. Any standardized assessments administered.]
+
+ASSESSMENT:
+[Clinical interpretation. Progress toward goals. How the client is responding to treatment. Risk assessment.]
+
+PLAN:
+[Next session date, time, location. Goals or homework for client. Any referrals. Changes to treatment plan.]
+
+Counsellor Signature: _______________ Date Signed: _______________`,
+    guidance: `SOAP Note — what goes in each section:
+• Goal/Outcome/Intervention: State the treatment goal, the outcome being targeted, and the intervention used this session.
+• Mental Health Status Exam: Appearance, focus, speech, thought content and ability, affect, orientation, risk.
+• Subjective (S): What the CLIENT reported — their words, feelings, complaints, concerns. Use quotes where appropriate.
+• Objective (O): Observable, measurable FACTS only. What the clinician observed — appearance, behaviour, affect. Any assessments administered. No interpretations.
+• Assessment (A): Clinical interpretation. Progress toward goals, how client is responding to treatment, risk level.
+• Plan (P): Next session date/time/location. Client homework or goals. Referrals. Any changes to treatment plan.`
   },
   DAP: {
     name: "DAP",
-    sections: ["Data", "Assessment", "Plan"],
-    guidance: `DAP Note Format:
-D - DATA: Both subjective (what client said) and objective (what clinician observed) combined. Client's presentation, reported concerns, observable behaviour and affect.
-A - ASSESSMENT: Clinical interpretation of the data. Progress toward treatment goals, risk level, response to interventions.
-P - PLAN: Next steps — next session date/time, planned interventions, any referrals or changes.`
+    sections: ["Treatment Goal/Outcome/Intervention", "Session Date & Time", "Data", "Assessment", "Plan"],
+    template: `DAP Note Template:
+
+Client/ID: _______________
+Treatment Goal/Outcome/Intervention: _______________
+
+Session Date: _______________
+Start and Finish Time: _______________
+
+DATA:
+• Focus of session:
+• Descriptions and observations about the client's current state:
+• Interventions used during the session and topics discussed:
+• Client's response to interventions:
+
+ASSESSMENT:
+• Client's progress:
+• How the client has responded to treatment:
+• Changes to client's diagnosis (if applicable):
+• Achievement of treatment goals:
+• Behaviour, affect, appearance of client:
+
+PLAN:
+• Date, time, and location of next session:
+• Goals or homework for client:
+• Referrals:
+• Any changes to current treatment plan:
+
+Counsellor Name and Signature: _______________ Date: _______________`,
+    guidance: `DAP Note — what goes in each section:
+• Treatment Goal/Outcome/Intervention: Clearly state what goal is being worked on, the outcome targeted, and the intervention.
+• Data (D): Combines subjective and objective. Include: focus of session, observations about client's current state, interventions used and topics discussed, client's response to interventions.
+• Assessment (A): Client's progress, how they have responded to treatment, any diagnostic changes, achievement of goals, behaviour/affect/appearance.
+• Plan (P): Date/time/location of next session, client homework or goals, referrals, any changes to treatment plan.`
   },
   TARP: {
     name: "TARP",
-    sections: ["Treatment", "Action", "Response", "Plan"],
-    guidance: `TARP Note Format:
-T - TREATMENT: The treatment goal and objective being addressed in this session. What are you working toward?
-A - ACTION: What the CLINICIAN did. Use "Clinician..." language. Clinician educated, assisted, prompted, coached, modeled, role-played, directed. No quotes. No "I said." Generalize and summarize.
-R - RESPONSE: What the CLIENT did and said in response. Factual. Direct quotes welcome. Client's words, behaviours, and reactions only — not the clinician's perception.
-P - PLAN: Next session date/time and what will be continued or changed.`
+    sections: ["Mental Health Status Exam", "Treatment", "Action", "Response", "Plan"],
+    template: `TARP Note Template:
+
+Client Name/ID: _______________
+Date: _______________ Start Time: _______________ End Time: _______________
+
+MENTAL HEALTH STATUS EXAM:
+[Appearance, focus, speech, thought content and ability, etc.]
+
+T — TREATMENT:
+• Treatment Goal:
+• Objective:
+• Intervention:
+
+A — ACTION (Clinician interventions):
+[Use "Clinician..." language only. Clinician educated / assisted / prompted / coached / modeled / role-played / directed / inquired / processed. No quotes. No "I said." Generalize and summarize.]
+
+R — RESPONSE (Client's response):
+[How did the client respond to the interventions? What did they say? Direct quotes welcome. Client words and behaviours only — no clinician perceptions.]
+
+P — PLAN:
+• Date, time, place of next session:
+• Focus of next session:
+• Any referrals or homework:
+
+Counsellor Name and Signature: _______________ Date: _______________`,
+    guidance: `TARP Note — what goes in each section:
+• Mental Health Status Exam: Appearance, focus, speech, thought content and ability, affect, orientation.
+• Treatment (T): Treatment goal, objective being worked on, and intervention used this session.
+• Action (A): What the CLINICIAN did. Must use "Clinician..." language. Use verbs: educated, assisted, prompted, coached, modeled, role-played, directed, inquired, processed. NO quotes. NO "I said/told." Generalize — do not narrate word-for-word.
+• Response (R): How the CLIENT responded. Their words and behaviours only. Direct quotes are welcome. Do NOT include clinician perceptions or interpretations.
+• Plan (P): Date/time/place of next session, focus of next session, any referrals or homework.`
   },
   BIRP: {
     name: "BIRP",
-    sections: ["Behaviour", "Intervention", "Response", "Plan"],
-    guidance: `BIRP Note Format:
-B - BEHAVIOUR: Client's presenting behaviour, mood, or concern at this session. What the client brought in — their reported experience since last session and current presentation.
-I - INTERVENTION: What the CLINICIAN did. Use "Counsellor/Clinician..." language. Generalize interventions — no quotes, no "I told them." Use: educated, engaged, prompted, modeled, provided psychoeducation, processed, explored.
-R - RESPONSE: Client's reaction to the intervention. Factual, behavioural, client's own words. Direct quotes encouraged. No clinician perceptions.
-P - PLAN: Next session details and continuation or adjustment of treatment approach.`
+    sections: ["Treatment Goal/Objective/Intervention", "Mental Health Status Exam", "Behaviour", "Intervention", "Response", "Plan"],
+    template: `BIRP Note Template:
+
+Client Name/ID: _______________
+Date: _______________ Start Time: _______________ End Time: _______________
+Treatment Goal/Objective/Intervention: _______________
+
+MENTAL HEALTH STATUS EXAM:
+[Appearance, focus, speech, thought content and ability, etc.]
+
+B — BEHAVIOUR:
+[Describe reported behaviour since last session. What did the client bring in today?]
+
+I — INTERVENTION (Counsellor interventions):
+[Use "Counsellor/Clinician..." language. Generalize — no quotes, no "I told them." Use verbs: educated, engaged, prompted, modeled, provided psychoeducation, processed, explored.]
+
+R — RESPONSE (Client's response):
+[How did the client respond to interventions? What did they say? Direct quotes welcome. Client words and behaviours only — no clinician perceptions.]
+
+P — PLAN:
+• Date, time, place of next session:
+• Focus of next session:
+• Any referrals or homework:
+
+Counsellor Name and Signature: _______________ Date: _______________`,
+    guidance: `BIRP Note — what goes in each section:
+• Treatment Goal/Objective/Intervention: State clearly at the top.
+• Mental Health Status Exam: Appearance, focus, speech, thought content and ability, affect, orientation.
+• Behaviour (B): Describe reported behaviour since last session. What the client brought to this session. Their current presentation.
+• Intervention (I): What the COUNSELLOR/CLINICIAN did. Must use "Counsellor/Clinician..." language. Use verbs: educated, engaged, prompted, modeled, provided psychoeducation, processed, explored. NO quotes. NO "I." Generalize.
+• Response (R): How the CLIENT responded. Their words and behaviours only. Direct quotes encouraged. NO clinician perceptions.
+• Plan (P): Date/time/place of next session, focus of next session, referrals or homework.`
   },
 };
 
