@@ -45,6 +45,57 @@ const MODALITY_CONTEXT = {
   "Integrative":"Integrative approach drawing on multiple modalities as clinically appropriate.",
 };
 
+const RESOURCES = {
+  "SFBT": [
+    { concept: "Miracle Question", desc: "A key SFBT technique. Ask the client to imagine waking up tomorrow and the problem is solved — what would be different? How would they know?" },
+    { concept: "Scaling Questions", desc: "Ask the client to rate their situation on a scale of 1-10, then explore what a small step forward would look like." },
+    { concept: "Exception Finding", desc: "Explore times when the problem was less present or absent. What was different? What were they doing differently?" },
+    { concept: "Complimenting", desc: "Genuine, specific affirmations of client strengths and efforts observed in session. Not generic praise." },
+  ],
+  "CBT": [
+    { concept: "Socratic Questioning", desc: "Guide clients to examine the evidence for and against their beliefs rather than directly challenging them." },
+    { concept: "Thought Records", desc: "Help clients identify automatic negative thoughts, examine evidence, and develop balanced alternative thoughts." },
+    { concept: "Cognitive Restructuring", desc: "Identify cognitive distortions (catastrophising, mind-reading, etc.) and collaboratively challenge them." },
+    { concept: "Behavioural Activation", desc: "Schedule activities that increase positive reinforcement, especially for depression. Link mood to activity." },
+  ],
+  "Narrative Therapy": [
+    { concept: "Externalisation", desc: "Separate the problem from the person. 'The anxiety' rather than 'your anxiety.' Explore how the problem affects the client." },
+    { concept: "Unique Outcomes", desc: "Find moments when the problem did not win — times the client resisted, escaped, or worked around it." },
+    { concept: "Re-authoring", desc: "Help clients construct an alternative story of their lives that centres their values and preferred identity." },
+    { concept: "Definitional Ceremony", desc: "Invite witnesses to reflect on what they noticed about the client — powerful for identity work." },
+  ],
+  "Person-Centred Therapy": [
+    { concept: "Unconditional Positive Regard", desc: "Accepting the client fully without judgment, regardless of what they share. Warmth without conditions." },
+    { concept: "Empathic Reflection", desc: "Reflecting back the felt sense of what the client is experiencing — not just content, but the emotion underneath." },
+    { concept: "Congruence", desc: "Being genuine and authentic in the therapeutic relationship. Using self appropriately and not hiding behind a professional mask." },
+    { concept: "The Actualising Tendency", desc: "Trust that clients have an innate drive toward growth. The therapist's role is to create conditions, not direct." },
+  ],
+  "DBT": [
+    { concept: "Validation Strategies", desc: "Six levels of validation — from listening, to reflecting, to radical genuineness. Master all six." },
+    { concept: "Dialectics", desc: "Hold opposites simultaneously — acceptance AND change. Both/and rather than either/or." },
+    { concept: "Chain Analysis", desc: "Map the chain of events, thoughts, and emotions that led to a problem behaviour. Identify intervention points." },
+    { concept: "DEAR MAN", desc: "Interpersonal effectiveness skill for asserting needs: Describe, Express, Assert, Reinforce, Mindful, Appear confident, Negotiate." },
+  ],
+  "ACT": [
+    { concept: "Cognitive Defusion", desc: "Creating distance from thoughts — noticing thoughts as mental events rather than facts. 'I'm having the thought that...'" },
+    { concept: "Values Clarification", desc: "Distinguish values (directions) from goals (outcomes). Help clients identify what truly matters to them." },
+    { concept: "Acceptance", desc: "Willingness to experience difficult thoughts and feelings without struggling against them unnecessarily." },
+    { concept: "Committed Action", desc: "Taking concrete steps in valued directions even in the presence of difficult internal experiences." },
+  ],
+  "Motivational Interviewing": [
+    { concept: "OARS", desc: "Open questions, Affirmations, Reflections, Summaries — the four core MI skills. Practice reflective listening especially." },
+    { concept: "Change Talk", desc: "Listen for and amplify DARN-C: Desire, Ability, Reasons, Need, Commitment to change." },
+    { concept: "Rolling with Resistance", desc: "Avoid arguing or confronting. Reflect resistance, reframe, or shift focus." },
+    { concept: "Developing Discrepancy", desc: "Help clients notice the gap between their current behaviour and their stated values or goals." },
+  ],
+  "Adlerian Therapy": [
+    { concept: "Early Recollections", desc: "Explore earliest memories as windows into the client's private logic and lifestyle beliefs." },
+    { concept: "Encouragement", desc: "Central to Adlerian work — not praise but genuine recognition of effort and capability." },
+    { concept: "Social Interest", desc: "Gemeinschaftsgefuhl — the sense of belonging and contribution to community. A marker of psychological health." },
+    { concept: "Lifestyle Assessment", desc: "Understanding the client's characteristic pattern of moving through life — their core beliefs and goals." },
+  ],
+};
+
 const ROLE_OPPOSITE = {
   therapist: "Client",
   client: "Therapist",
@@ -73,40 +124,29 @@ function buildClientSystem(modality, issue, personality, sessionType) {
   const issueText = issue === "Randomised — surprise me"
     ? "a clinically rich presenting issue of your own choosing — do not reveal what it is upfront under any circumstances"
     : issue;
-
   const sessionContext = {
-    intake: "This is a first intake session. The client has never met this therapist before. Start with just a hello. Do not reveal anything about why you are here until the therapist asks.",
-    early: "This is an early session, maybe the second or third meeting. You have met this therapist once or twice before. You are still cautious but slightly more at ease than the very first session.",
-    mid: "This is a mid-therapy session. You have been seeing this therapist for a while and there is an established relationship. You can be somewhat more open but still realistic in how much you share at once.",
-    closing: "This is a closing or final session. You have been working with this therapist for some time. There is warmth and trust. You may reflect on the journey and express feelings about ending.",
-    crisis: "This is a crisis session. You are in significant distress. You may be tearful, overwhelmed, or struggling to articulate what is happening. You need support urgently.",
+    intake: "This is a first intake session. Start with just a hello. Do not reveal anything about why you are here until the therapist asks.",
+    early: "This is an early session. You have met this therapist once or twice. Still cautious but slightly more at ease.",
+    mid: "This is a mid-therapy session. Established relationship. More open but still realistic.",
+    closing: "This is a closing session. Warmth and trust. May reflect on the journey and express feelings about ending.",
+    crisis: "This is a crisis session. You are in significant distress. May be tearful or overwhelmed.",
   };
-
   return `You are playing a real therapy client in a graduate training session. The student therapist is practising ${modality}.
 
 Your presenting issue: ${issueText}
 Your personality: ${personality}
 Session context: ${sessionContext[sessionType] || sessionContext.intake}
 
-CRITICAL RULES — follow these exactly:
-
-1. YOU DO NOT LEAD. The therapist leads the entire session. You only respond to what they ask or say. Never volunteer information they have not asked for.
-
-2. START SLOW. In the very first exchange just say hello and settle in naturally. Nothing more. Do not mention why you are here. Wait for the therapist to open the session and eventually ask what brings you in.
-
-3. REVEAL NOTHING until the therapist asks. If they ask what brings you in, give only a vague one-sentence hint. If they explore further, give a little more. Build it slowly across the whole session the way a real client would. Never dump your presenting issue.
-
-4. KEEP RESPONSES SHORT. One to three sentences maximum every single time. Real clients do not monologue. If you are writing more than three sentences, stop.
-
-5. FOLLOW THE THERAPIST'S LEAD. Closed question means short answer. Open question means open up slightly. Silence means you sit in silence too, or say something like sorry I am just not sure where to start.
-
-6. SHOW REALISTIC HESITATION. Real clients pause, deflect, say I do not know, minimise their problems, change the subject. Do this naturally throughout.
-
-7. Never break character for any reason. You are the client for the entire session.
-
-8. You may use asterisks for visible body language only — like pauses or looks at hands — never for internal thoughts.
-
-9. If you are confused about how therapy works, say so briefly in one sentence and let the therapist handle it. Do not ask lots of questions about the process.`;
+CRITICAL RULES:
+1. YOU DO NOT LEAD. The therapist leads. Only respond to what they ask or say.
+2. START SLOW. First exchange — just say hello, nothing more. Do not mention why you are here.
+3. REVEAL NOTHING until asked. Give only a vague hint when first asked. Build slowly across the session.
+4. KEEP RESPONSES SHORT. One to three sentences maximum. Always.
+5. FOLLOW THE THERAPIST'S LEAD. Closed question = short answer. Open question = open up slightly. Silence = sit in it.
+6. SHOW REALISTIC HESITATION. Pause, deflect, say you do not know, minimise, change subject.
+7. Never break character.
+8. Asterisks for visible body language only — never internal thoughts.
+9. If confused about therapy, say so briefly in one sentence and let the therapist handle it.`;
 }
 
 async function callAPI(endpoint, body) {
@@ -116,10 +156,7 @@ async function callAPI(endpoint, body) {
     body: JSON.stringify(body),
   });
   const data = await res.json();
-  if (data.error) {
-    console.error("API Error:", data.error);
-    return "Error: " + JSON.stringify(data.error);
-  }
+  if (data.error) { console.error("API Error:", data.error); return "Error: " + JSON.stringify(data.error); }
   return data.text || "";
 }
 
@@ -130,28 +167,22 @@ async function saveSession(sessionData) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(sessionData),
     });
-  } catch(e) {
-    console.error("Failed to save session:", e);
-  }
+  } catch(e) { console.error("Failed to save session:", e); }
+}
+
+function formatDuration(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m + "m " + s + "s";
 }
 
 function Typing() {
-  return (
-    <div className="typing">
-      <div className="tdot" />
-      <div className="tdot" />
-      <div className="tdot" />
-    </div>
-  );
+  return <div className="typing"><div className="tdot" /><div className="tdot" /><div className="tdot" /></div>;
 }
 
 function getBestVoice() {
   const voices = window.speechSynthesis.getVoices();
-  const preferred = [
-    "Google UK English Female","Google US English",
-    "Microsoft Aria Online (Natural)","Microsoft Jenny Online (Natural)",
-    "Microsoft Guy Online (Natural)","Samantha","Karen","Daniel",
-  ];
+  const preferred = ["Google UK English Female","Google US English","Microsoft Aria Online (Natural)","Microsoft Jenny Online (Natural)","Microsoft Guy Online (Natural)","Samantha","Karen","Daniel"];
   for (var i = 0; i < preferred.length; i++) {
     var v = voices.find(function(v) { return v.name === preferred[i]; });
     if (v) return v;
@@ -173,15 +204,256 @@ function speakText(text, cb) {
   }
   var voices = window.speechSynthesis.getVoices();
   if (voices.length > 0) { doSpeak(); }
-  else {
-    window.speechSynthesis.onvoiceschanged = function() {
-      window.speechSynthesis.onvoiceschanged = null;
-      doSpeak();
-    };
-  }
+  else { window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.onvoiceschanged = null; doSpeak(); }; }
 }
 
-// ── NAME ENTRY ────────────────────────────────────────────────
+// ── REVIEW RENDERER ───────────────────────────────────────────
+function ReviewRenderer({ text }) {
+  if (!text) return null;
+  let data = null;
+  try { data = JSON.parse(text); } catch(e) {
+    return <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{text}</div>;
+  }
+  function ratingColor(r) {
+    if (!r) return "var(--text2)";
+    const rl = r.toLowerCase().trim();
+    if (rl === "strong") return "#2D6A4F";
+    if (rl === "developing") return "#854F0B";
+    if (rl === "needs work") return "#8B2020";
+    return "var(--text3)";
+  }
+  function ratingBg(r) {
+    if (!r) return "transparent";
+    const rl = r.toLowerCase().trim();
+    if (rl === "strong") return "#EBF5F0";
+    if (rl === "developing") return "#FDF3E3";
+    if (rl === "needs work") return "#FDF0F0";
+    return "transparent";
+  }
+  const sectionStyle = { marginBottom: "1.75rem" };
+  const labelStyle = { fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.75rem", paddingBottom: "0.4rem", borderBottom: "0.5px solid var(--border)" };
+  return (
+    <div style={{ marginTop: "0.5rem" }}>
+      {data.overview && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "var(--text3)" }}>Overview</div>
+          <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)" }}>{data.overview}</div>
+        </div>
+      )}
+      {(data.duration_note || data.intention_achieved) && (
+        <div style={{ ...sectionStyle, display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+          {data.duration_note && data.duration_note.trim() && (
+            <div style={{ flex: 1, minWidth: 200, padding: "0.75rem 1rem", background: "var(--surface2)", borderRadius: 8, fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>
+              <div style={{ fontWeight: 500, color: "var(--text)", marginBottom: "0.25rem", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Session length</div>
+              {data.duration_note}
+            </div>
+          )}
+          {data.intention_achieved && data.intention_achieved.trim() && (
+            <div style={{ flex: 1, minWidth: 200, padding: "0.75rem 1rem", background: "#EBF0F8", borderRadius: 8, fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>
+              <div style={{ fontWeight: 500, color: "#185FA5", marginBottom: "0.25rem", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Intention check</div>
+              {data.intention_achieved}
+            </div>
+          )}
+        </div>
+      )}
+      {data.dimensions && data.dimensions.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "#185FA5" }}>Dimensions</div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500, width: "28%" }}>Dimension</th>
+                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500, width: "12%" }}>Rating</th>
+                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500 }}>Evidence from session</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.dimensions.map(function(d, i) {
+                  return (
+                    <tr key={i} style={{ borderBottom: "0.5px solid var(--border)", background: i % 2 === 0 ? "transparent" : "var(--surface2)" }}>
+                      <td style={{ padding: "8px 10px", color: "var(--text)", fontWeight: 500, verticalAlign: "top", lineHeight: 1.5 }}>{d.name}</td>
+                      <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
+                        <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 500, background: ratingBg(d.rating), color: ratingColor(d.rating), whiteSpace: "nowrap" }}>{d.rating}</span>
+                      </td>
+                      <td style={{ padding: "8px 10px", color: "var(--text2)", verticalAlign: "top", lineHeight: 1.6 }}>{d.evidence}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {data.landed_well && data.landed_well.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "#2D6A4F" }}>What landed well</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {data.landed_well.map(function(item, i) {
+              return (
+                <div key={i} style={{ padding: "0.75rem 1rem", background: "#EBF5F0", borderRadius: 8, borderLeft: "3px solid #2D6A4F" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#2D6A4F", fontWeight: 500, marginBottom: "0.3rem", fontStyle: "italic" }}>{item.moment}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.why}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {data.priority_focus && data.priority_focus.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "#854F0B" }}>Priority focus for next session</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {data.priority_focus.map(function(item, i) {
+              return (
+                <div key={i} style={{ padding: "0.75rem 1rem", background: "#FDF3E3", borderRadius: 8, borderLeft: "3px solid #854F0B" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#854F0B", fontWeight: 500, marginBottom: "0.3rem" }}>{item.area}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.suggestion}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {data.explore_further && data.explore_further.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "#185FA5" }}>Explore further</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {data.explore_further.map(function(item, i) {
+              return (
+                <div key={i} style={{ padding: "0.75rem 1rem", background: "#EBF0F8", borderRadius: 8, borderLeft: "3px solid #185FA5" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#185FA5", fontWeight: 500, marginBottom: "0.3rem" }}>{item.concept}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.reason}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {data.reflection_question && (
+        <div style={sectionStyle}>
+          <div style={{ ...labelStyle, color: "var(--text3)" }}>Reflection question</div>
+          <div style={{ padding: "1rem 1.25rem", background: "var(--surface2)", borderRadius: 8, fontSize: "0.95rem", lineHeight: 1.7, color: "var(--text)", fontStyle: "italic" }}>
+            {data.reflection_question}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PROGRESS CHART ────────────────────────────────────────────
+function ProgressChart({ sessions }) {
+  if (!sessions || sessions.length < 2) return null;
+
+  const KEY_DIMS = ["Rapport and therapeutic alliance","Question types (open vs closed, timing)","Paraphrasing","Emotional attunement","Session management (opening, structure, closing)"];
+  const RATING_SCORE = { "strong": 3, "developing": 2, "needs work": 1, "n/a": null };
+
+  function getScore(session, dim) {
+    if (!session.review) return null;
+    try {
+      const data = JSON.parse(session.review);
+      const d = data.dimensions && data.dimensions.find(function(x) { return x.name.toLowerCase() === dim.toLowerCase(); });
+      if (!d) return null;
+      return RATING_SCORE[d.rating.toLowerCase()] || null;
+    } catch(e) { return null; }
+  }
+
+  const chartWidth = 500;
+  const chartHeight = 160;
+  const padL = 8, padR = 8, padT = 10, padB = 30;
+  const innerW = chartWidth - padL - padR;
+  const innerH = chartHeight - padT - padB;
+
+  const colors = ["#185FA5","#2D6A4F","#854F0B","#8B2020","#534AB7"];
+  const sortedSessions = sessions.slice().reverse();
+
+  function getPoints(dim) {
+    const pts = [];
+    sortedSessions.forEach(function(s, i) {
+      const score = getScore(s, dim);
+      if (score !== null) {
+        const x = padL + (sortedSessions.length === 1 ? innerW / 2 : (i / (sortedSessions.length - 1)) * innerW);
+        const y = padT + innerH - ((score - 1) / 2) * innerH;
+        pts.push({ x, y, score, date: new Date(s.date).toLocaleDateString("en-CA", { month: "short", day: "numeric" }) });
+      }
+    });
+    return pts;
+  }
+
+  return (
+    <div style={{ marginBottom: "1.5rem" }}>
+      <div style={{ fontSize: "0.75rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.75rem" }}>Progress over time</div>
+      <div style={{ overflowX: "auto" }}>
+        <svg width={chartWidth} height={chartHeight} style={{ display: "block", maxWidth: "100%" }}>
+          {[1,2,3].map(function(v) {
+            const y = padT + innerH - ((v-1)/2)*innerH;
+            return (
+              <g key={v}>
+                <line x1={padL} x2={chartWidth-padR} y1={y} y2={y} stroke="var(--border)" strokeWidth={0.5} />
+                <text x={padL} y={y-3} fontSize={9} fill="var(--text3)">{v===3?"Strong":v===2?"Developing":"Needs Work"}</text>
+              </g>
+            );
+          })}
+          {sortedSessions.map(function(s, i) {
+            const x = padL + (sortedSessions.length === 1 ? innerW/2 : (i/(sortedSessions.length-1))*innerW);
+            const label = new Date(s.date).toLocaleDateString("en-CA", { month: "short", day: "numeric" });
+            return <text key={i} x={x} y={chartHeight-8} fontSize={9} fill="var(--text3)" textAnchor="middle">{label}</text>;
+          })}
+          {KEY_DIMS.map(function(dim, di) {
+            const pts = getPoints(dim);
+            if (pts.length < 1) return null;
+            const color = colors[di % colors.length];
+            const pathD = pts.map(function(p, i) { return (i===0?"M":"L") + p.x + "," + p.y; }).join(" ");
+            return (
+              <g key={dim}>
+                {pts.length > 1 && <path d={pathD} fill="none" stroke={color} strokeWidth={1.5} strokeOpacity={0.7} />}
+                {pts.map(function(p, i) {
+                  return <circle key={i} cx={p.x} cy={p.y} r={3} fill={color} />;
+                })}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+        {KEY_DIMS.map(function(dim, di) {
+          return (
+            <div key={dim} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.72rem", color: "var(--text2)" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: colors[di % colors.length], flexShrink: 0 }} />
+              {dim.split("(")[0].trim()}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── RESOURCES ─────────────────────────────────────────────────
+function ResourcesPanel({ modality }) {
+  const resources = RESOURCES[modality];
+  if (!resources) return null;
+  return (
+    <div style={{ marginBottom: "1.5rem" }}>
+      <div style={{ fontSize: "0.75rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.75rem" }}>
+        Resources — {modality}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        {resources.map(function(r, i) {
+          return (
+            <div key={i} style={{ padding: "0.75rem 1rem", background: "var(--surface2)", borderRadius: 8, borderLeft: "3px solid var(--border2)" }}>
+              <div style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--text)", marginBottom: "0.25rem" }}>{r.concept}</div>
+              <div style={{ fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.6 }}>{r.desc}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── NAME SCREEN ───────────────────────────────────────────────
 function NameScreen({ onContinue }) {
   const [name, setName] = useState(function() {
     try { return localStorage.getItem("clinicStudent") || ""; } catch(e) { return ""; }
@@ -194,42 +466,33 @@ function NameScreen({ onContinue }) {
     if (!name.trim()) { alert("Please enter your name."); return; }
     setLoading(true);
     try {
-      const res = await fetch(`/api/sessions?student=${encodeURIComponent(name.trim())}`);
+      const res = await fetch("/api/sessions?student=" + encodeURIComponent(name.trim()));
       const data = await res.json();
       setPastSessions(data || []);
     } catch(e) { setPastSessions([]); }
-    setLoading(false);
     localStorage.setItem("clinicStudent", name.trim());
+    setLoading(false);
     setChecked(true);
   }
 
   if (checked) {
     return (
       <div>
-        <div className="header">
-          <h1>Clinical Supervision</h1>
-          <p>Welcome back, {name.trim()}</p>
-        </div>
+        <div className="header"><h1>Clinical Supervision</h1><p>Welcome back, {name.trim()}</p></div>
         <div className="card">
-          <button className="btn primary" onClick={function() { onContinue(name.trim(), "new"); }} style={{ marginBottom: "0.75rem" }}>
-            Start new session
-          </button>
-          {pastSessions.length > 0 && (
-            <button className="btn" onClick={function() { onContinue(name.trim(), "history"); }}>
-              View my past sessions ({pastSessions.length})
-            </button>
-          )}
+          <button className="btn primary" onClick={function() { onContinue(name.trim(), "new"); }} style={{ marginBottom: "0.75rem" }}>Start new session</button>
+          {pastSessions.length > 0 && <button className="btn" onClick={function() { onContinue(name.trim(), "history"); }}>View my past sessions ({pastSessions.length})</button>}
         </div>
         {pastSessions.length > 0 && (
           <div className="card">
             <div className="section-label">Recent sessions</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
-              {pastSessions.slice(0, 3).map(function(s) {
+              {pastSessions.slice(0,3).map(function(s) {
                 return (
                   <div key={s.id} style={{ fontSize: "0.85rem", color: "var(--text2)", padding: "0.5rem 0", borderBottom: "0.5px solid var(--border)" }}>
-                    <span style={{ fontWeight: 500, color: "var(--text)" }}>{s.modality}</span>
-                    {" · "}{s.session_type}{" · "}{s.mode === "solo" ? "Solo" : "Group"}
+                    <span style={{ fontWeight: 500, color: "var(--text)" }}>{s.modality}</span>{" · "}{s.session_type}{" · "}{s.mode === "solo" ? "Solo" : "Group"}
                     {" · "}<span style={{ color: "var(--text3)" }}>{new Date(s.date).toLocaleDateString()}</span>
+                    {s.duration_seconds > 0 && <span style={{ color: "var(--text3)" }}> · {formatDuration(s.duration_seconds)}</span>}
                   </div>
                 );
               })}
@@ -242,25 +505,14 @@ function NameScreen({ onContinue }) {
 
   return (
     <div>
-      <div className="header">
-        <h1>Clinical Supervision</h1>
-        <p>A training platform for graduate therapy students</p>
-      </div>
+      <div className="header"><h1>Clinical Supervision</h1><p>A training platform for graduate therapy students</p></div>
       <div className="card">
         <div className="field">
           <label>Your name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={function(e) { setName(e.target.value); }}
-            onKeyDown={function(e) { if (e.key === "Enter") handleContinue(); }}
-            placeholder="Enter your first and last name"
-            style={{ width: "100%", padding: "0.7rem 1rem", fontSize: "0.95rem", border: "1px solid var(--border2)", borderRadius: 8, background: "var(--surface)", color: "var(--text)", outline: "none", fontFamily: "inherit" }}
-          />
+          <input type="text" value={name} onChange={function(e) { setName(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") handleContinue(); }} placeholder="Enter your first and last name"
+            style={{ width: "100%", padding: "0.7rem 1rem", fontSize: "0.95rem", border: "1px solid var(--border2)", borderRadius: 8, background: "var(--surface)", color: "var(--text)", outline: "none", fontFamily: "inherit" }} />
         </div>
-        <button className="btn primary" onClick={handleContinue} disabled={loading}>
-          {loading ? "Loading..." : "Continue"}
-        </button>
+        <button className="btn primary" onClick={handleContinue} disabled={loading}>{loading ? "Loading..." : "Continue"}</button>
       </div>
     </div>
   );
@@ -271,46 +523,69 @@ function HistoryScreen({ studentName, onBack }) {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+  const [activeTab, setActiveTab] = useState("session");
 
   useEffect(function() {
-    fetch(`/api/sessions?student=${encodeURIComponent(studentName)}`)
+    fetch("/api/sessions?student=" + encodeURIComponent(studentName))
       .then(function(r) { return r.json(); })
       .then(function(data) { setSessions(data || []); setLoading(false); })
       .catch(function() { setLoading(false); });
   }, [studentName]);
 
-  const SESSION_TYPE_LABELS = {
-    intake: "Intake", early: "Early", mid: "Mid-therapy", closing: "Closing", crisis: "Crisis",
-  };
+  const SESSION_TYPE_LABELS = { intake: "Intake", early: "Early", mid: "Mid-therapy", closing: "Closing", crisis: "Crisis" };
 
   function formatDate(d) {
     return new Date(d).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" });
   }
 
   if (selected) {
+    let reviewData = null;
+    try { reviewData = JSON.parse(selected.review); } catch(e) {}
+
     return (
       <div>
-        <button className="btn btn-sm" onClick={function() { setSelected(null); }} style={{ marginBottom: "1rem" }}>
-          Back to history
-        </button>
+        <button className="btn btn-sm" onClick={function() { setSelected(null); setActiveTab("session"); }} style={{ marginBottom: "1rem" }}>Back to history</button>
         <div className="card">
           <div style={{ fontWeight: 500 }}>{selected.modality} — {SESSION_TYPE_LABELS[selected.session_type] || selected.session_type}</div>
-          <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 4 }}>
-            {formatDate(selected.date)} · {selected.mode === "solo" ? "Solo Practice" : "Group Supervision"}
-            {selected.issue ? " · " + selected.issue : ""}
+          <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 4, display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+            <span>{formatDate(selected.date)}</span>
+            <span>·</span>
+            <span>{selected.mode === "solo" ? "Solo Practice" : "Group Supervision"}</span>
+            {selected.duration_seconds > 0 && <><span>·</span><span>{formatDuration(selected.duration_seconds)}</span></>}
+            {selected.issue && selected.issue !== "" && <><span>·</span><span>{selected.issue}</span></>}
           </div>
+          {selected.intention && selected.intention !== "" && (
+            <div style={{ marginTop: "0.5rem", fontSize: "0.82rem", color: "var(--text2)", background: "#EBF0F8", padding: "0.4rem 0.75rem", borderRadius: 6 }}>
+              Intention: {selected.intention}
+            </div>
+          )}
+          {selected.professor_note && (
+            <div style={{ marginTop: "0.75rem", padding: "0.75rem 1rem", background: "#FDF3E3", borderRadius: 8, borderLeft: "3px solid #854F0B" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "#854F0B", marginBottom: "0.25rem" }}>Professor note</div>
+              <div style={{ fontSize: "0.875rem", color: "var(--text2)", lineHeight: 1.6 }}>{selected.professor_note}</div>
+            </div>
+          )}
         </div>
-        {selected.transcript && (
+
+        <div className="tabs" style={{ marginBottom: "1rem" }}>
+          <button className={"tab" + (activeTab === "session" ? " active" : "")} onClick={function() { setActiveTab("session"); }}>Review</button>
+          <button className={"tab" + (activeTab === "transcript" ? " active" : "")} onClick={function() { setActiveTab("transcript"); }}>Transcript</button>
+          {RESOURCES[selected.modality] && <button className={"tab" + (activeTab === "resources" ? " active" : "")} onClick={function() { setActiveTab("resources"); }}>Resources</button>}
+        </div>
+
+        {activeTab === "session" && (
           <div className="card">
-            <div className="section-label">Transcript</div>
-            <div style={{ fontSize: "0.875rem", lineHeight: 1.8, color: "var(--text2)", whiteSpace: "pre-wrap", marginTop: "0.5rem" }}>{selected.transcript}</div>
+            {selected.review ? <ReviewRenderer text={selected.review} /> : <div style={{ fontSize: "0.875rem", color: "var(--text3)", fontStyle: "italic" }}>No review available.</div>}
           </div>
         )}
-        {selected.review && (
+        {activeTab === "transcript" && (
           <div className="card">
-            <div className="section-label" style={{ color: "#185FA5" }}>Clinical Review</div>
-            <div style={{ fontSize: "0.875rem", lineHeight: 1.9, color: "var(--text)", whiteSpace: "pre-wrap", marginTop: "0.5rem" }}>{selected.review}</div>
+            <div className="section-label">Transcript</div>
+            <div style={{ fontSize: "0.875rem", lineHeight: 1.8, color: "var(--text2)", whiteSpace: "pre-wrap", marginTop: "0.5rem" }}>{selected.transcript || "No transcript recorded."}</div>
           </div>
+        )}
+        {activeTab === "resources" && (
+          <div className="card"><ResourcesPanel modality={selected.modality} /></div>
         )}
       </div>
     );
@@ -323,10 +598,16 @@ function HistoryScreen({ studentName, onBack }) {
         <p>{studentName} · {sessions.length} session{sessions.length !== 1 ? "s" : ""}</p>
       </div>
       <button className="btn btn-sm" onClick={onBack} style={{ marginBottom: "1rem" }}>Back</button>
+
+      {sessions.length >= 2 && (
+        <div className="card"><ProgressChart sessions={sessions} /></div>
+      )}
+
       {loading && <div className="card"><div style={{ fontSize: "0.875rem", color: "var(--text2)" }}>Loading...</div></div>}
       {!loading && sessions.length === 0 && (
         <div className="card"><div style={{ fontSize: "0.875rem", color: "var(--text3)", fontStyle: "italic" }}>No sessions yet. Complete a session to see it here.</div></div>
       )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         {sessions.map(function(s) {
           return (
@@ -339,11 +620,13 @@ function HistoryScreen({ studentName, onBack }) {
                     <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 3 }}>
                       {SESSION_TYPE_LABELS[s.session_type] || s.session_type} · {s.mode === "solo" ? "Solo" : "Group"}
                       {s.issue && s.issue !== "" ? " · " + s.issue : ""}
+                      {s.duration_seconds > 0 ? " · " + formatDuration(s.duration_seconds) : ""}
                     </div>
+                    {s.intention && <div style={{ fontSize: "0.78rem", color: "var(--text3)", marginTop: 2, fontStyle: "italic" }}>Focus: {s.intention}</div>}
+                    {s.professor_note && <div style={{ fontSize: "0.78rem", color: "#854F0B", marginTop: 2 }}>Professor note added</div>}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>{formatDate(s.date)}</div>
                 </div>
-                {s.review && <div style={{ fontSize: "0.78rem", color: "var(--text3)", marginTop: "0.4rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.review.substring(0, 100)}...</div>}
               </button>
               <button
                 onClick={async function() {
@@ -353,9 +636,7 @@ function HistoryScreen({ studentName, onBack }) {
                 }}
                 style={{ background: "#FDF0F0", border: "1px solid #E8C0C0", borderRadius: 12, padding: "0 0.75rem", cursor: "pointer", color: "#8B2020", fontSize: "1rem", flexShrink: 0 }}
                 title="Delete session"
-              >
-                &#x1F5D1;
-              </button>
+              >&#x1F5D1;</button>
             </div>
           );
         })}
@@ -370,27 +651,36 @@ function SetupScreen({ studentName, onStart, onHistory }) {
   const [gModality, setGModality] = useState("");
   const [gRole, setGRole] = useState("therapist");
   const [gSessionType, setGSessionType] = useState("intake");
+  const [gIntention, setGIntention] = useState("");
   const [sModality, setSModality] = useState("");
   const [sIssue, setSIssue] = useState("Randomised — surprise me");
   const [sRespMode, setSRespMode] = useState("voice");
   const [sSessionType, setSSessionType] = useState("intake");
+  const [sIntention, setSIntention] = useState("");
 
   function handleStart() {
     if (mode === "group") {
       if (!gModality) { alert("Please select a modality."); return; }
-      onStart({ mode: "group", modality: gModality, role: gRole, sessionType: gSessionType, studentName });
+      onStart({ mode: "group", modality: gModality, role: gRole, sessionType: gSessionType, studentName, intention: gIntention });
     } else {
       if (!sModality) { alert("Please select a modality."); return; }
-      onStart({ mode: "solo", modality: sModality, issue: sIssue, respMode: sRespMode, sessionType: sSessionType, studentName });
+      onStart({ mode: "solo", modality: sModality, issue: sIssue, respMode: sRespMode, sessionType: sSessionType, studentName, intention: sIntention });
     }
   }
 
+  const intentionInput = function(val, setVal) {
+    return (
+      <div className="field">
+        <label>Session intention (optional)</label>
+        <input type="text" value={val} onChange={function(e) { setVal(e.target.value); }} placeholder="What one thing do you want to focus on today?"
+          style={{ width: "100%", padding: "0.7rem 1rem", fontSize: "0.9rem", border: "1px solid var(--border2)", borderRadius: 8, background: "var(--surface)", color: "var(--text)", outline: "none", fontFamily: "inherit" }} />
+      </div>
+    );
+  };
+
   return (
     <div>
-      <div className="header">
-        <h1>Clinical Supervision</h1>
-        <p>{studentName}</p>
-      </div>
+      <div className="header"><h1>Clinical Supervision</h1><p>{studentName}</p></div>
       <div className="card">
         <div className="tabs">
           <button className={"tab" + (mode === "group" ? " active" : "")} onClick={function() { setMode("group"); }}>Group Supervision</button>
@@ -399,9 +689,7 @@ function SetupScreen({ studentName, onStart, onHistory }) {
 
         {mode === "group" && (
           <div>
-            <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
-              Listen to your group session. Say <strong>Hey Claude</strong> at any point for live guidance. A full clinical review is generated at the end.
-            </p>
+            <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>Listen to your group session. Say <strong>Hey Claude</strong> at any point for live guidance.</p>
             <div className="field">
               <label>Modality being practised</label>
               <select value={gModality} onChange={function(e) { setGModality(e.target.value); }}>
@@ -412,29 +700,28 @@ function SetupScreen({ studentName, onStart, onHistory }) {
             <div className="field">
               <label>Session type</label>
               <select value={gSessionType} onChange={function(e) { setGSessionType(e.target.value); }}>
-                <option value="intake">Intake / first session — rapport building, history gathering</option>
-                <option value="early">Early session — establishing goals, building alliance</option>
-                <option value="mid">Mid-therapy — active intervention and technique work</option>
-                <option value="closing">Closing session — consolidation and termination</option>
-                <option value="crisis">Crisis session — safety assessment and stabilisation</option>
+                <option value="intake">Intake / first session</option>
+                <option value="early">Early session</option>
+                <option value="mid">Mid-therapy</option>
+                <option value="closing">Closing session</option>
+                <option value="crisis">Crisis session</option>
               </select>
             </div>
             <div className="field">
-              <label>Your role in this session</label>
+              <label>Your role</label>
               <select value={gRole} onChange={function(e) { setGRole(e.target.value); }}>
                 <option value="therapist">Therapist</option>
                 <option value="client">Client</option>
                 <option value="observer">Observer</option>
               </select>
             </div>
+            {intentionInput(gIntention, setGIntention)}
           </div>
         )}
 
         {mode === "solo" && (
           <div>
-            <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
-              Practice solo. Claude plays a real client with a randomised personality. Press <strong>Start talking</strong> to speak, press <strong>Done</strong> when finished.
-            </p>
+            <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>Practice solo. Claude plays a real client. Press <strong>Start talking</strong> to speak, <strong>Done</strong> when finished.</p>
             <div className="field">
               <label>Modality to practise</label>
               <select value={sModality} onChange={function(e) { setSModality(e.target.value); }}>
@@ -451,20 +738,21 @@ function SetupScreen({ studentName, onStart, onHistory }) {
             <div className="field">
               <label>Session type</label>
               <select value={sSessionType} onChange={function(e) { setSSessionType(e.target.value); }}>
-                <option value="intake">Intake / first session — rapport building, history gathering</option>
-                <option value="early">Early session — establishing goals, building alliance</option>
-                <option value="mid">Mid-therapy — active intervention and technique work</option>
-                <option value="closing">Closing session — consolidation and termination</option>
-                <option value="crisis">Crisis session — safety assessment and stabilisation</option>
+                <option value="intake">Intake / first session</option>
+                <option value="early">Early session</option>
+                <option value="mid">Mid-therapy</option>
+                <option value="closing">Closing session</option>
+                <option value="crisis">Crisis session</option>
               </select>
             </div>
             <div className="field">
               <label>Client response mode</label>
               <select value={sRespMode} onChange={function(e) { setSRespMode(e.target.value); }}>
-                <option value="voice">Voice — client speaks responses aloud</option>
+                <option value="voice">Voice — client speaks aloud</option>
                 <option value="text">Text — client responds in writing</option>
               </select>
             </div>
+            {intentionInput(sIntention, setSIntention)}
           </div>
         )}
 
@@ -484,10 +772,10 @@ function GroupScreen({ config, onEnd }) {
   const [supervisorReply, setSupervisorReply] = useState(null);
   const [isResponding, setIsResponding] = useState(false);
   const [currentSpeaker, setCurrentSpeaker] = useState(config.role);
+  const [elapsed, setElapsed] = useState(0);
 
   const myRole = config.role;
   const otherRole = ROLE_OPPOSITE[config.role] || "Other";
-
   const recRef = useRef(null);
   const activeRef = useRef(true);
   const heyModeRef = useRef(false);
@@ -496,54 +784,44 @@ function GroupScreen({ config, onEnd }) {
   const transcriptRef = useRef([]);
   const transcriptBoxRef = useRef(null);
   const currentSpeakerRef = useRef(config.role);
+  const startTimeRef = useRef(Date.now());
+  const timerRef = useRef(null);
+
+  useEffect(function() {
+    timerRef.current = setInterval(function() { setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000)); }, 1000);
+    return function() { clearInterval(timerRef.current); };
+  }, []);
 
   const addLine = useCallback(function(text, type, speaker) {
-    const line = { text: text, type: type, speaker: speaker, id: Date.now() + Math.random() };
+    const line = { text, type, speaker, id: Date.now() + Math.random() };
     transcriptRef.current = transcriptRef.current.concat([line]);
     setTranscript(transcriptRef.current.slice());
   }, []);
 
   useEffect(function() {
-    if (transcriptBoxRef.current) {
-      transcriptBoxRef.current.scrollTop = transcriptBoxRef.current.scrollHeight;
-    }
+    if (transcriptBoxRef.current) transcriptBoxRef.current.scrollTop = transcriptBoxRef.current.scrollHeight;
   }, [transcript]);
 
   const triggerResponse = useCallback(async function() {
     const q = qBufferRef.current.trim();
-    qBufferRef.current = "";
-    heyModeRef.current = false;
+    qBufferRef.current = ""; heyModeRef.current = false;
     if (!q) return;
     activeRef.current = false;
     try { recRef.current.stop(); } catch(e) {}
-    setDotState("responding");
-    setIndText("Supervisor is thinking...");
-    setIsResponding(true);
-    setSupervisorReply("typing");
-    const ctx = transcriptRef.current.slice(-40).map(function(l) {
-      return (l.speaker ? l.speaker + ": " : "") + l.text;
-    }).join("\n");
+    setDotState("responding"); setIndText("Supervisor is thinking..."); setIsResponding(true); setSupervisorReply("typing");
+    const ctx = transcriptRef.current.slice(-40).map(function(l) { return (l.speaker ? l.speaker + ": " : "") + l.text; }).join("\n");
     const msg = "Session transcript so far:\n" + (ctx || "(session just started)") + "\n\nStudent just asked you: \"" + q + "\"";
     try {
-      const reply = await callAPI("/api/chat", {
-        system: buildGroupSystem(config.modality, config.role),
-        messages: [{ role: "user", content: msg }],
-      });
+      const reply = await callAPI("/api/chat", { system: buildGroupSystem(config.modality, config.role), messages: [{ role: "user", content: msg }] });
       setSupervisorReply(reply);
       addLine(reply, "supervisor-line", "Supervisor");
       speakText(reply, function() {
-        setIsResponding(false);
-        setDotState("listening");
-        setIndText("Listening to session...");
-        activeRef.current = true;
+        setIsResponding(false); setDotState("listening"); setIndText("Listening to session..."); activeRef.current = true;
         try { recRef.current.start(); } catch(e) {}
       });
     } catch(e) {
       setSupervisorReply("Connection issue — please try again.");
-      setIsResponding(false);
-      setDotState("listening");
-      setIndText("Listening to session...");
-      activeRef.current = true;
+      setIsResponding(false); setDotState("listening"); setIndText("Listening to session..."); activeRef.current = true;
       try { recRef.current.start(); } catch(e) {}
     }
   }, [config, addLine]);
@@ -554,7 +832,6 @@ function GroupScreen({ config, onEnd }) {
     const rec = new SR();
     rec.continuous = true; rec.interimResults = true; rec.lang = "en-US";
     recRef.current = rec;
-
     rec.onresult = function(e) {
       let interimText = "", finalText = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -577,9 +854,7 @@ function GroupScreen({ config, onEnd }) {
           qBufferRef.current = after.replace(/hey claude/gi, "").trim();
           clearTimeout(silTimerRef.current);
           silTimerRef.current = setTimeout(triggerResponse, 2200);
-        } else {
-          addLine(cleaned, "speaker", currentSpeakerRef.current);
-        }
+        } else { addLine(cleaned, "speaker", currentSpeakerRef.current); }
       } else {
         addLine(cleaned, "speaker", currentSpeakerRef.current);
         qBufferRef.current += " " + cleaned;
@@ -587,7 +862,6 @@ function GroupScreen({ config, onEnd }) {
         silTimerRef.current = setTimeout(triggerResponse, 2200);
       }
     };
-
     rec.onerror = function(e) {
       if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; }
       if (activeRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 800);
@@ -595,13 +869,8 @@ function GroupScreen({ config, onEnd }) {
     rec.onend = function() {
       if (activeRef.current && !isResponding) setTimeout(function() { try { rec.start(); } catch(e) {} }, 200);
     };
-
     try { rec.start(); } catch(e) {}
-    return function() {
-      activeRef.current = false;
-      clearTimeout(silTimerRef.current);
-      try { rec.stop(); } catch(e) {}
-    };
+    return function() { activeRef.current = false; clearTimeout(silTimerRef.current); try { rec.stop(); } catch(e) {} };
   }, [addLine, triggerResponse]);
 
   function switchSpeaker() {
@@ -612,19 +881,18 @@ function GroupScreen({ config, onEnd }) {
 
   function handleEnd() {
     activeRef.current = false;
+    clearInterval(timerRef.current);
     try { recRef.current.stop(); } catch(e) {}
-    const fullTranscript = transcriptRef.current.map(function(l) {
-      return (l.speaker ? l.speaker + ": " : "") + l.text;
-    }).join("\n");
-    onEnd(fullTranscript);
+    const fullTranscript = transcriptRef.current.map(function(l) { return (l.speaker ? l.speaker + ": " : "") + l.text; }).join("\n");
+    onEnd(fullTranscript, elapsed);
   }
 
-  const speakerColor = function(speaker) {
-    if (!speaker) return "";
-    const s = speaker.toLowerCase();
-    if (s === "therapist") return "#185FA5";
-    if (s === "client") return "#854F0B";
-    if (s === "supervisor") return "#2D6A4F";
+  const speakerColor = function(s) {
+    if (!s) return "";
+    const sl = s.toLowerCase();
+    if (sl === "therapist") return "#185FA5";
+    if (sl === "client") return "#854F0B";
+    if (sl === "supervisor") return "#2D6A4F";
     return "var(--text2)";
   };
 
@@ -635,27 +903,21 @@ function GroupScreen({ config, onEnd }) {
           <div>
             <div style={{ fontWeight: 500 }}>Group Supervision</div>
             <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 2 }}>
-              <span className="badge">{config.modality}</span>{" "}
-              <span className="badge">{config.role}</span>{" "}
-              <span className="badge">{config.sessionType || "intake"}</span>
+              <span className="badge">{config.modality}</span>{" "}<span className="badge">{config.role}</span>{" "}<span className="badge">{config.sessionType || "intake"}</span>
             </div>
           </div>
-          <button className="btn btn-sm danger" onClick={handleEnd}>End and review</button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ fontSize: "0.85rem", color: "var(--text3)", fontVariantNumeric: "tabular-nums" }}>{formatDuration(elapsed)}</div>
+            <button className="btn btn-sm danger" onClick={handleEnd}>End and review</button>
+          </div>
         </div>
       </div>
       <div className="card">
-        <div className="indicator">
-          <div className={"dot " + dotState} />
-          <div className="ind-text">{indText}</div>
-        </div>
+        <div className="indicator"><div className={"dot " + dotState} /><div className="ind-text">{indText}</div></div>
         {interim && <div className="interim">{interim}</div>}
         <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <div style={{ fontSize: "0.85rem", color: "var(--text2)" }}>
-            Speaking as: <strong style={{ color: speakerColor(currentSpeaker), textTransform: "capitalize" }}>{currentSpeaker}</strong>
-          </div>
-          <button className="btn btn-sm" onClick={switchSpeaker}>
-            Switch to {currentSpeakerRef.current === myRole ? otherRole : myRole}
-          </button>
+          <div style={{ fontSize: "0.85rem", color: "var(--text2)" }}>Speaking as: <strong style={{ color: speakerColor(currentSpeaker), textTransform: "capitalize" }}>{currentSpeaker}</strong></div>
+          <button className="btn btn-sm" onClick={switchSpeaker}>Switch to {currentSpeakerRef.current === myRole ? otherRole : myRole}</button>
         </div>
         <div className="hint" style={{ marginTop: "0.5rem" }}>Say <strong>Hey Claude</strong> followed by your question at any point.</div>
       </div>
@@ -663,15 +925,11 @@ function GroupScreen({ config, onEnd }) {
         <div className="section-label">Live transcript</div>
         <div className="transcript-wrap" ref={transcriptBoxRef}>
           {transcript.length === 0
-            ? <div className="t-empty">Transcript will appear here as the session unfolds...</div>
+            ? <div className="t-empty">Transcript will appear here...</div>
             : transcript.map(function(l) {
                 return (
                   <div key={l.id} className={"t-line " + l.type}>
-                    {l.speaker && (
-                      <span style={{ fontSize: "0.75rem", fontWeight: 500, marginRight: "0.4rem", color: speakerColor(l.speaker), textTransform: "capitalize" }}>
-                        {l.speaker}
-                      </span>
-                    )}
+                    {l.speaker && <span style={{ fontSize: "0.75rem", fontWeight: 500, marginRight: "0.4rem", color: speakerColor(l.speaker), textTransform: "capitalize" }}>{l.speaker}</span>}
                     {l.text}
                   </div>
                 );
@@ -683,9 +941,7 @@ function GroupScreen({ config, onEnd }) {
         <div className="card">
           <div className="response-area">
             <div className="response-label sup">Supervisor</div>
-            <div className="response-text">
-              {supervisorReply === "typing" ? <Typing /> : supervisorReply}
-            </div>
+            <div className="response-text">{supervisorReply === "typing" ? <Typing /> : supervisorReply}</div>
           </div>
         </div>
       )}
@@ -703,6 +959,7 @@ function SoloScreen({ config, onEnd }) {
   const [muted, setMuted] = useState(false);
   const [talking, setTalking] = useState(false);
   const [clientReady, setClientReady] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
 
   const recRef = useRef(null);
   const respondingRef = useRef(false);
@@ -712,28 +969,29 @@ function SoloScreen({ config, onEnd }) {
   const personalityRef = useRef(PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)]);
   const bufferRef = useRef("");
   const convBoxRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const timerRef = useRef(null);
 
   const addLine = useCallback(function(text, role) {
-    const line = { text: text, role: role, id: Date.now() + Math.random() };
+    const line = { text, role, id: Date.now() + Math.random() };
     convRef.current = convRef.current.concat([line]);
     setConversation(convRef.current.slice());
   }, []);
 
   useEffect(function() {
-    if (convBoxRef.current) {
-      convBoxRef.current.scrollTop = convBoxRef.current.scrollHeight;
-    }
+    if (convBoxRef.current) convBoxRef.current.scrollTop = convBoxRef.current.scrollHeight;
   }, [conversation]);
+
+  function startTimer() {
+    startTimeRef.current = Date.now();
+    timerRef.current = setInterval(function() { setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000)); }, 1000);
+  }
 
   function toggleMute() {
     const next = !mutedRef.current;
     mutedRef.current = next;
     setMuted(next);
-    if (next && talkingRef.current) {
-      talkingRef.current = false;
-      setTalking(false);
-      try { recRef.current && recRef.current.stop(); } catch(e) {}
-    }
+    if (next && talkingRef.current) { talkingRef.current = false; setTalking(false); try { recRef.current && recRef.current.stop(); } catch(e) {} }
   }
 
   function setupRec() {
@@ -750,37 +1008,25 @@ function SoloScreen({ config, onEnd }) {
         else interimText += e.results[i][0].transcript;
       }
       setInterim(interimText);
-      if (finalText) {
-        bufferRef.current += " " + finalText.trim();
-        setInterim(bufferRef.current.trim());
-      }
+      if (finalText) { bufferRef.current += " " + finalText.trim(); setInterim(bufferRef.current.trim()); }
     };
-    rec.onerror = function(e) {
-      if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; }
-    };
-    rec.onend = function() {
-      if (talkingRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 100);
-    };
+    rec.onerror = function(e) { if (e.error === "not-allowed") { setIndText("Microphone access denied."); return; } };
+    rec.onend = function() { if (talkingRef.current) setTimeout(function() { try { rec.start(); } catch(e) {} }, 100); };
     return rec;
   }
 
   function startTalking() {
     if (respondingRef.current || mutedRef.current || !clientReady) return;
-    bufferRef.current = "";
-    setInterim("");
-    talkingRef.current = true;
-    setTalking(true);
-    setIndText("Listening — press Done when finished");
-    setDotState("listening");
+    bufferRef.current = ""; setInterim("");
+    talkingRef.current = true; setTalking(true);
+    setIndText("Listening — press Done when finished"); setDotState("listening");
     if (!recRef.current) { setupRec(); }
     try { recRef.current.start(); } catch(e) {}
   }
 
   function stopTalking() {
     if (!talkingRef.current) return;
-    talkingRef.current = false;
-    setTalking(false);
-    setInterim("");
+    talkingRef.current = false; setTalking(false); setInterim("");
     try { recRef.current && recRef.current.stop(); } catch(e) {}
     const said = bufferRef.current.trim();
     bufferRef.current = "";
@@ -792,32 +1038,18 @@ function SoloScreen({ config, onEnd }) {
     if (respondingRef.current) return;
     respondingRef.current = true;
     addLine(text, "therapist");
-    setDotState("responding");
-    setIndText("Client is thinking...");
-    setClientReply("typing");
-    const history = convRef.current.slice(-20).map(function(l) {
-      return { role: l.role === "therapist" ? "user" : "assistant", content: l.text };
-    });
+    setDotState("responding"); setIndText("Client is thinking..."); setClientReply("typing");
+    const history = convRef.current.slice(-20).map(function(l) { return { role: l.role === "therapist" ? "user" : "assistant", content: l.text }; });
     try {
-      const reply = await callAPI("/api/chat", {
-        system: buildClientSystem(config.modality, config.issue, personalityRef.current, config.sessionType || "intake"),
-        messages: history,
-      });
+      const reply = await callAPI("/api/chat", { system: buildClientSystem(config.modality, config.issue, personalityRef.current, config.sessionType || "intake"), messages: history });
       addLine(reply, "client");
       setClientReply(reply);
-      setDotState("client");
-      setIndText("Session in progress — press Start talking when ready");
-      function afterSpeak() {
-        respondingRef.current = false;
-        setDotState("client");
-        setIndText("Session in progress — press Start talking when ready");
-      }
-      if (config.respMode === "voice") { speakText(reply, afterSpeak); }
-      else { afterSpeak(); }
+      setDotState("client"); setIndText("Session in progress — press Start talking when ready");
+      function afterSpeak() { respondingRef.current = false; setDotState("client"); setIndText("Session in progress — press Start talking when ready"); }
+      if (config.respMode === "voice") { speakText(reply, afterSpeak); } else { afterSpeak(); }
     } catch(e) {
       setClientReply("Connection issue — please try again.");
-      respondingRef.current = false;
-      setIndText("Session in progress — press Start talking when ready");
+      respondingRef.current = false; setIndText("Session in progress — press Start talking when ready");
     }
   }
 
@@ -827,28 +1059,24 @@ function SoloScreen({ config, onEnd }) {
       try {
         const reply = await callAPI("/api/chat", {
           system: buildClientSystem(config.modality, config.issue, personalityRef.current, config.sessionType || "intake"),
-          messages: [{ role: "user", content: "You have just walked into the therapy room and sat down. The therapist is about to greet you. Say hello naturally and nothing more. Do not mention why you are here. One sentence only." }],
+          messages: [{ role: "user", content: "You have just walked into the therapy room and sat down. The therapist is about to greet you. Say hello naturally and nothing more. One sentence only." }],
         });
         addLine(reply, "client");
         setClientReply(reply);
-        setDotState("client");
-        setIndText("Session in progress — press Start talking when ready");
-        if (config.respMode === "voice") { speakText(reply, function() { setClientReady(true); }); }
-        else { setClientReady(true); }
-      } catch(e) {
-        setIndText("Connection issue — please refresh and try again.");
-      }
+        setDotState("client"); setIndText("Session in progress — press Start talking when ready");
+        function startListening() { setClientReady(true); startTimer(); }
+        if (config.respMode === "voice") { speakText(reply, startListening); } else { startListening(); }
+      } catch(e) { setIndText("Connection issue — please refresh and try again."); }
     }
     init();
   }, []);
 
   function handleEnd() {
     talkingRef.current = false;
+    clearInterval(timerRef.current);
     try { recRef.current && recRef.current.stop(); } catch(e) {}
     window.speechSynthesis && window.speechSynthesis.cancel();
-    onEnd(convRef.current.map(function(l) {
-      return (l.role === "therapist" ? "Therapist: " : "Client: ") + l.text;
-    }).join("\n"));
+    onEnd(convRef.current.map(function(l) { return (l.role === "therapist" ? "Therapist: " : "Client: ") + l.text; }).join("\n"), elapsed);
   }
 
   return (
@@ -858,12 +1086,11 @@ function SoloScreen({ config, onEnd }) {
           <div>
             <div style={{ fontWeight: 500 }}>Solo Practice</div>
             <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 2 }}>
-              <span className="badge">{config.modality}</span>{" "}
-              <span className="badge">{config.issue}</span>{" "}
-              <span className="badge">{config.sessionType || "intake"}</span>
+              <span className="badge">{config.modality}</span>{" "}<span className="badge">{config.issue}</span>{" "}<span className="badge">{config.sessionType || "intake"}</span>
             </div>
           </div>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ fontSize: "0.85rem", color: "var(--text3)", fontVariantNumeric: "tabular-nums" }}>{formatDuration(elapsed)}</div>
             <button className="btn btn-sm" onClick={toggleMute}>{muted ? "Unmute mic" : "Mute mic"}</button>
             <button className="btn btn-sm danger" onClick={handleEnd}>End session</button>
           </div>
@@ -892,9 +1119,7 @@ function SoloScreen({ config, onEnd }) {
             : conversation.map(function(l) {
                 return (
                   <div key={l.id} className={"t-line " + (l.role === "therapist" ? "therapist" : "client")}>
-                    <span style={{ opacity: 0.45, fontSize: "0.75rem", marginRight: "0.4rem" }}>
-                      {l.role === "therapist" ? "You" : "Client"}
-                    </span>
+                    <span style={{ opacity: 0.45, fontSize: "0.75rem", marginRight: "0.4rem" }}>{l.role === "therapist" ? "You" : "Client"}</span>
                     {l.text}
                   </div>
                 );
@@ -914,144 +1139,8 @@ function SoloScreen({ config, onEnd }) {
   );
 }
 
-
-// ── REVIEW RENDERER ───────────────────────────────────────────
-function ReviewRenderer({ text }) {
-  if (!text) return null;
-
-  let data = null;
-  try {
-    data = JSON.parse(text);
-  } catch(e) {
-    return <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{text}</div>;
-  }
-
-  function ratingColor(r) {
-    if (!r) return "var(--text2)";
-    const rl = r.toLowerCase().trim();
-    if (rl === "strong") return "#2D6A4F";
-    if (rl === "developing") return "#854F0B";
-    if (rl === "needs work") return "#8B2020";
-    return "var(--text3)";
-  }
-
-  function ratingBg(r) {
-    if (!r) return "transparent";
-    const rl = r.toLowerCase().trim();
-    if (rl === "strong") return "#EBF5F0";
-    if (rl === "developing") return "#FDF3E3";
-    if (rl === "needs work") return "#FDF0F0";
-    return "transparent";
-  }
-
-  const sectionStyle = { marginBottom: "1.75rem" };
-  const labelStyle = { fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.75rem", paddingBottom: "0.4rem", borderBottom: "0.5px solid var(--border)" };
-
-  return (
-    <div style={{ marginTop: "0.5rem" }}>
-
-      {data.overview && (
-        <div style={sectionStyle}>
-          <div style={{ ...labelStyle, color: "var(--text3)" }}>Overview</div>
-          <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)" }}>{data.overview}</div>
-        </div>
-      )}
-
-      {data.dimensions && data.dimensions.length > 0 && (
-        <div style={sectionStyle}>
-          <div style={{ ...labelStyle, color: "#185FA5" }}>Dimensions</div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500, width: "28%" }}>Dimension</th>
-                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500, width: "12%" }}>Rating</th>
-                  <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: "2px solid var(--border2)", color: "var(--text2)", fontWeight: 500 }}>Evidence from session</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.dimensions.map(function(d, i) {
-                  return (
-                    <tr key={i} style={{ borderBottom: "0.5px solid var(--border)", background: i % 2 === 0 ? "transparent" : "var(--surface2)" }}>
-                      <td style={{ padding: "8px 10px", color: "var(--text)", fontWeight: 500, verticalAlign: "top", lineHeight: 1.5 }}>{d.name}</td>
-                      <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
-                        <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 500, background: ratingBg(d.rating), color: ratingColor(d.rating), whiteSpace: "nowrap" }}>
-                          {d.rating}
-                        </span>
-                      </td>
-                      <td style={{ padding: "8px 10px", color: "var(--text2)", verticalAlign: "top", lineHeight: 1.6 }}>{d.evidence}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {data.landed_well && data.landed_well.length > 0 && (
-        <div style={sectionStyle}>
-          <div style={{ ...labelStyle, color: "#2D6A4F" }}>What landed well</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {data.landed_well.map(function(item, i) {
-              return (
-                <div key={i} style={{ padding: "0.75rem 1rem", background: "#EBF5F0", borderRadius: 8, borderLeft: "3px solid #2D6A4F" }}>
-                  <div style={{ fontSize: "0.85rem", color: "#2D6A4F", fontWeight: 500, marginBottom: "0.3rem", fontStyle: "italic" }}>{item.moment}</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.why}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {data.priority_focus && data.priority_focus.length > 0 && (
-        <div style={sectionStyle}>
-          <div style={{ ...labelStyle, color: "#854F0B" }}>Priority focus for next session</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {data.priority_focus.map(function(item, i) {
-              return (
-                <div key={i} style={{ padding: "0.75rem 1rem", background: "#FDF3E3", borderRadius: 8, borderLeft: "3px solid #854F0B" }}>
-                  <div style={{ fontSize: "0.85rem", color: "#854F0B", fontWeight: 500, marginBottom: "0.3rem" }}>{item.area}</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.suggestion}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {data.explore_further && data.explore_further.length > 0 && (
-        <div style={sectionStyle}>
-          <div style={{ ...labelStyle, color: "#185FA5" }}>Explore further</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {data.explore_further.map(function(item, i) {
-              return (
-                <div key={i} style={{ padding: "0.75rem 1rem", background: "#EBF0F8", borderRadius: 8, borderLeft: "3px solid #185FA5" }}>
-                  <div style={{ fontSize: "0.85rem", color: "#185FA5", fontWeight: 500, marginBottom: "0.3rem" }}>{item.concept}</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--text2)", lineHeight: 1.6 }}>{item.reason}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {data.reflection_question && (
-        <div style={sectionStyle}>
-          <div style={{ ...labelStyle, color: "var(--text3)" }}>Reflection question</div>
-          <div style={{ padding: "1rem 1.25rem", background: "var(--surface2)", borderRadius: 8, fontSize: "0.95rem", lineHeight: 1.7, color: "var(--text)", fontStyle: "italic" }}>
-            {data.reflection_question}
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
-}
-
 // ── REVIEW ────────────────────────────────────────────────────
-function ReviewScreen({ config, transcript, onReset }) {
+function ReviewScreen({ config, transcript, duration, onReset }) {
   const [step, setStep] = useState("choose");
   const [reviewText, setReviewText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -1062,45 +1151,34 @@ function ReviewScreen({ config, transcript, onReset }) {
     setStep("loading");
     try {
       const text = await callAPI("/api/review", {
-        transcript, modality: config.modality,
-        issue: config.issue || "", mode: config.mode, sessionType,
+        transcript, modality: config.modality, issue: config.issue || "",
+        mode: config.mode, sessionType, duration_seconds: duration || 0,
+        intention: config.intention || "",
       });
       setReviewText(text);
       setStep("done");
-
-      // Auto-save session
       setSaving(true);
       await saveSession({
-        student_name: config.studentName,
-        mode: config.mode,
-        modality: config.modality,
-        session_type: sessionType,
-        issue: config.issue || "",
-        transcript,
-        review: text,
+        student_name: config.studentName, mode: config.mode, modality: config.modality,
+        session_type: sessionType, issue: config.issue || "", transcript,
+        review: text, duration_seconds: duration || 0, intention: config.intention || "",
       });
-      setSaving(false);
-      setSaved(true);
-
+      setSaving(false); setSaved(true);
       if (mode === "voice" && window.speechSynthesis) { speakText(text, function() {}); }
-    } catch(e) {
-      setReviewText("Connection issue — please try again.");
-      setStep("done");
-    }
+    } catch(e) { setReviewText("Connection issue — please try again."); setStep("done"); }
   }
 
   return (
     <div>
       <div className="header" style={{ paddingBottom: "1.5rem" }}>
         <h1>Session Review</h1>
-        <p>{config.modality}{config.issue ? " — " + config.issue : ""} — {config.mode === "solo" ? "Solo Practice" : "Group Supervision"}</p>
+        <p>{config.modality}{config.issue ? " — " + config.issue : ""} — {config.mode === "solo" ? "Solo Practice" : "Group Supervision"}
+        {duration > 0 && " — " + formatDuration(duration)}</p>
       </div>
 
       {step === "choose" && (
         <div className="card">
-          <div style={{ fontSize: "0.95rem", marginBottom: "1rem", color: "var(--text2)" }}>
-            How would you like to receive your clinical review?
-          </div>
+          <div style={{ fontSize: "0.95rem", marginBottom: "1rem", color: "var(--text2)" }}>How would you like to receive your clinical review?</div>
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button className="btn" style={{ flex: 1 }} onClick={function() { generate("text"); }}>Written only</button>
             <button className="btn" style={{ flex: 1 }} onClick={function() { generate("voice"); }}>Read aloud and written</button>
@@ -1113,9 +1191,7 @@ function ReviewScreen({ config, transcript, onReset }) {
           <div className="response-area">
             <div className="response-label sup">Clinical Review</div>
             <Typing />
-            <div style={{ fontSize: "0.8rem", color: "var(--text3)", marginTop: "0.5rem" }}>
-              Reviewing your session across all clinical dimensions...
-            </div>
+            <div style={{ fontSize: "0.8rem", color: "var(--text3)", marginTop: "0.5rem" }}>Reviewing your session across all clinical dimensions...</div>
           </div>
         </div>
       )}
@@ -1140,26 +1216,19 @@ function ReviewScreen({ config, transcript, onReset }) {
 // ── ROOT ──────────────────────────────────────────────────────
 export default function Home() {
   const [screen, setScreen] = useState(function() {
-    try {
-      const saved = localStorage.getItem("clinicStudent");
-      return saved ? "setup" : "name";
-    } catch(e) { return "name"; }
+    try { const saved = localStorage.getItem("clinicStudent"); return saved ? "setup" : "name"; } catch(e) { return "name"; }
   });
   const [studentName, setStudentName] = useState(function() {
     try { return localStorage.getItem("clinicStudent") || ""; } catch(e) { return ""; }
   });
   const [config, setConfig] = useState(null);
   const [finalTranscript, setFinalTranscript] = useState("");
+  const [finalDuration, setFinalDuration] = useState(0);
 
-  function handleName(name, action) {
-    setStudentName(name);
-    if (action === "history") setScreen("history");
-    else setScreen("setup");
-  }
-
+  function handleName(name, action) { setStudentName(name); if (action === "history") setScreen("history"); else setScreen("setup"); }
   function handleStart(cfg) { setConfig(cfg); setScreen(cfg.mode); }
-  function handleEnd(transcript) { setFinalTranscript(transcript); setScreen("review"); }
-  function handleReset() { setConfig(null); setFinalTranscript(""); setScreen("setup"); }
+  function handleEnd(transcript, duration) { setFinalTranscript(transcript); setFinalDuration(duration || 0); setScreen("review"); }
+  function handleReset() { setConfig(null); setFinalTranscript(""); setFinalDuration(0); setScreen("setup"); }
 
   return (
     <div className="app">
@@ -1168,7 +1237,7 @@ export default function Home() {
       {screen === "setup" && <SetupScreen studentName={studentName} onStart={handleStart} onHistory={function() { setScreen("history"); }} />}
       {screen === "group" && <GroupScreen config={config} onEnd={handleEnd} />}
       {screen === "solo" && <SoloScreen config={config} onEnd={handleEnd} />}
-      {screen === "review" && <ReviewScreen config={config} transcript={finalTranscript} onReset={handleReset} />}
+      {screen === "review" && <ReviewScreen config={config} transcript={finalTranscript} duration={finalDuration} onReset={handleReset} />}
     </div>
   );
 }
