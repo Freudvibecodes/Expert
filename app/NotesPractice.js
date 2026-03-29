@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { CASE_VIGNETTES, NOTE_FORMATS, NOTE_REQUIREMENTS } from "./constants";
+import { CASE_VIGNETTES, NOTE_FORMATS } from "./constants";
 
 function Typing() {
   return <div className="typing"><div className="tdot" /><div className="tdot" /><div className="tdot" /></div>;
@@ -141,8 +141,15 @@ export default function NotesPractice({ studentSessions }) {
         </button>
 
         {showGuide && formatInfo && (
-          <div style={{ padding: "0.75rem 1rem", background: "var(--blue-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--blue)", fontSize: "0.82rem", color: "var(--text)", lineHeight: 1.7, marginBottom: "0.75rem", whiteSpace: "pre-wrap" }}>
-            {formatInfo.guidance}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "0.75rem" }}>
+            <div style={{ padding: "0.75rem 1rem", background: "var(--blue-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--blue)", fontSize: "0.82rem", color: "var(--text)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+              <div style={{ fontWeight: 600, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--blue)", marginBottom: "0.5rem" }}>What goes in each section</div>
+              {formatInfo.guidance}
+            </div>
+            <div style={{ padding: "0.75rem 1rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--border2)", fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+              <div style={{ fontWeight: 600, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.5rem" }}>Template structure</div>
+              {formatInfo.template}
+            </div>
           </div>
         )}
 
@@ -183,7 +190,7 @@ export default function NotesPractice({ studentSessions }) {
           <textarea
             value={noteText}
             onChange={e => setNoteText(e.target.value)}
-            placeholder={`Write your ${format} note here. Include all required sections: ${formatInfo?.sections.join(", ")}.`}
+            placeholder={`Write your ${format} note here following the template structure.\n\nRequired sections: ${formatInfo?.sections.join(" → ")}\n\nTip: Use the format guide above to see exactly what goes in each section.`}
             style={{ minHeight: 280, resize: "vertical", lineHeight: 1.7, fontSize: "0.9rem" }}
           />
           <button className="btn primary" onClick={submitNote} disabled={loading} style={{ marginTop: "0.75rem" }}>
