@@ -293,8 +293,8 @@ export default function NotesPractice({ studentSessions, studentName }) {
         )}
       </div>
 
-      {/* Three column layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", alignItems: "start" }}>
+      {/* Three column layout — break out of app max-width constraint */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: "1.25rem", alignItems: "start", position: "relative" }}>
 
         {/* LEFT: writing area */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -339,7 +339,7 @@ export default function NotesPractice({ studentSessions, studentName }) {
         </div>
 
         {/* MIDDLE: what goes in each section */}
-        <div style={{ position: "sticky", top: "1rem" }}>
+        <div className="sticky-col">
           {(function() {
             const info = NOTE_FORMATS[format];
             const colors = { SOAP: "#185FA5", DAP: "#2D6A4F", TARP: "#854F0B", BIRP: "#2D6A6A" };
@@ -354,7 +354,7 @@ export default function NotesPractice({ studentSessions, studentName }) {
                 </div>
                 <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem" }}>What goes in each section</div>
                 <div style={{ padding: "0.85rem", background: light, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + color }}>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text)", lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{info && info.guidance}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text)", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>{info && info.guidance}</div>
                 </div>
               </div>
             );
@@ -362,14 +362,14 @@ export default function NotesPractice({ studentSessions, studentName }) {
         </div>
 
         {/* RIGHT: full template structure */}
-        <div style={{ position: "sticky", top: "1rem" }}>
+        <div className="sticky-col">
           {(function() {
             const info = NOTE_FORMATS[format];
             return (
               <div className="card">
                 <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text3)", marginBottom: "0.6rem" }}>Template structure</div>
                 <div style={{ padding: "0.85rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: "0.76rem", color: "var(--text2)", lineHeight: 1.85, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{info && info.template}</div>
+                  <div style={{ fontSize: "0.83rem", color: "var(--text2)", lineHeight: 1.9, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{info && info.template}</div>
                 </div>
               </div>
             );
