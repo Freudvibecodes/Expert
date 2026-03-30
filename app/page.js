@@ -215,7 +215,22 @@ function ReviewRenderer({ text }) {
       )}
       {data.dimensions && data.dimensions.length > 0 && (
         <div style={sectionStyle}>
-          <div style={{ ...labelStyle, color: "#185FA5" }}>Dimensions</div>
+          <div style={{ ...labelStyle, color: "var(--blue)" }}>Dimensions</div>
+          {(function() {
+            const counts = { Strong: 0, Developing: 0, "Needs Work": 0, "N/A": 0 };
+            data.dimensions.forEach(function(d) {
+              const r = d.rating || "N/A";
+              if (counts[r] !== undefined) counts[r]++;
+              else counts["N/A"]++;
+            });
+            return (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.75rem" }}>
+                {counts.Strong > 0 && <span style={{ padding: "3px 10px", borderRadius: 20, background: "var(--green-light)", color: "var(--green)", fontSize: "0.75rem", fontWeight: 500 }}>✓ {counts.Strong} Strong</span>}
+                {counts.Developing > 0 && <span style={{ padding: "3px 10px", borderRadius: 20, background: "var(--accent2-light)", color: "var(--accent2)", fontSize: "0.75rem", fontWeight: 500 }}>~ {counts.Developing} Developing</span>}
+                {counts["Needs Work"] > 0 && <span style={{ padding: "3px 10px", borderRadius: 20, background: "var(--red-light)", color: "var(--red)", fontSize: "0.75rem", fontWeight: 500 }}>↑ {counts["Needs Work"]} Needs Work</span>}
+              </div>
+            );
+          })()}
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
               <thead>
@@ -837,7 +852,7 @@ function SetupScreen({ studentName, onStart, onHistory }) {
             <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
               Practice writing clinical progress notes in SOAP, DAP, TARP, or BIRP format. Use a random case or one of your past sessions. Claude reviews your note with specific, structured feedback.
             </p>
-            <NotesPractice studentSessions={[]} />
+            <NotesPractice studentSessions={[]} studentName={studentName} />
           </div>
         )}
 
