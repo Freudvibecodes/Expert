@@ -6,37 +6,27 @@ function Typing() {
   return <div className="typing"><div className="tdot" /><div className="tdot" /><div className="tdot" /></div>;
 }
 
-function GradePill({ grade }) {
-  const colors = {
-    "Competent": { bg: "var(--green-light)", color: "var(--green)" },
-    "Developing": { bg: "var(--accent2-light)", color: "var(--accent2)" },
-    "Needs Revision": { bg: "var(--red-light)", color: "var(--red)" },
-  };
-  const c = colors[grade] || colors["Developing"];
-  return (
-    <span style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, background: c.bg, color: c.color, fontWeight: 600, fontSize: "0.82rem" }}>{grade}</span>
-  );
-}
-
 function NoteReview({ reviewText }) {
   if (!reviewText) return null;
   let data = null;
   try { data = JSON.parse(reviewText); } catch(e) {
     return <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)", whiteSpace: "pre-wrap" }}>{reviewText}</div>;
   }
+  const gradeColor = data.grade === "Competent" ? "var(--green)" : data.grade === "Developing" ? "var(--accent2)" : "var(--red)";
+  const gradeBg = data.grade === "Competent" ? "var(--green-light)" : data.grade === "Developing" ? "var(--accent2-light)" : "var(--red-light)";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
-        <GradePill grade={data.grade} />
+        <span style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, background: gradeBg, color: gradeColor, fontWeight: 600, fontSize: "0.82rem" }}>{data.grade}</span>
         <div style={{ fontSize: "0.9rem", color: "var(--text)", lineHeight: 1.7, flex: 1 }}>{data.overall}</div>
       </div>
       {data.strengths && data.strengths.length > 0 && (
         <div>
           <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--green)", marginBottom: "0.5rem" }}>Strengths</div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            {data.strengths.map((s, i) => (
-              <div key={i} style={{ padding: "0.6rem 0.9rem", background: "var(--green-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--green)", fontSize: "0.85rem", color: "var(--text)", lineHeight: 1.6 }}>{s}</div>
-            ))}
+            {data.strengths.map(function(s, i) {
+              return <div key={i} style={{ padding: "0.6rem 0.9rem", background: "var(--green-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--green)", fontSize: "0.85rem", color: "var(--text)", lineHeight: 1.6 }}>{s}</div>;
+            })}
           </div>
         </div>
       )}
@@ -44,14 +34,16 @@ function NoteReview({ reviewText }) {
         <div>
           <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--red)", marginBottom: "0.5rem" }}>Issues to address</div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {data.issues.map((issue, i) => (
-              <div key={i} style={{ padding: "0.75rem 1rem", background: "var(--red-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--red)" }}>
-                <div style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--red)", marginBottom: "0.25rem" }}>{issue.section}</div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text)", marginBottom: "0.25rem" }}>{issue.problem}</div>
-                {issue.example && <div style={{ fontSize: "0.8rem", color: "var(--text2)", fontStyle: "italic", marginBottom: "0.25rem" }}>From your note: "{issue.example}"</div>}
-                {issue.fix && <div style={{ fontSize: "0.82rem", color: "var(--text2)", marginTop: "0.25rem" }}>Fix: {issue.fix}</div>}
-              </div>
-            ))}
+            {data.issues.map(function(issue, i) {
+              return (
+                <div key={i} style={{ padding: "0.75rem 1rem", background: "var(--red-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--red)" }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--red)", marginBottom: "0.25rem" }}>{issue.section}</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text)", marginBottom: "0.25rem" }}>{issue.problem}</div>
+                  {issue.example && <div style={{ fontSize: "0.8rem", color: "var(--text2)", fontStyle: "italic", marginBottom: "0.25rem" }}>From your note: "{issue.example}"</div>}
+                  {issue.fix && <div style={{ fontSize: "0.82rem", color: "var(--text2)", marginTop: "0.25rem" }}>Fix: {issue.fix}</div>}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -59,9 +51,9 @@ function NoteReview({ reviewText }) {
         <div>
           <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--accent2)", marginBottom: "0.5rem" }}>Missing elements</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-            {data.missing.map((m, i) => (
-              <span key={i} style={{ padding: "3px 10px", background: "var(--accent2-light)", borderRadius: 20, fontSize: "0.78rem", color: "var(--accent2)", fontWeight: 500 }}>{m}</span>
-            ))}
+            {data.missing.map(function(m, i) {
+              return <span key={i} style={{ padding: "3px 10px", background: "var(--accent2-light)", borderRadius: 20, fontSize: "0.78rem", color: "var(--accent2)", fontWeight: 500 }}>{m}</span>;
+            })}
           </div>
         </div>
       )}
@@ -76,16 +68,54 @@ function NoteReview({ reviewText }) {
 }
 
 const STORAGE_KEY = "notesPracticeAttempts";
-
 function loadAttempts() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch(e) { return []; }
+  try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
 }
-
 function saveAttempts(attempts) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(attempts)); } catch(e) {}
+}
+
+// ── FORMAT REFERENCE PANEL ────────────────────────────────────
+function FormatReferencePanel({ format }) {
+  const info = NOTE_FORMATS[format];
+  if (!info) return null;
+
+  const accentColors = {
+    SOAP: "var(--blue)",
+    DAP: "var(--green)",
+    TARP: "var(--accent2)",
+    BIRP: "var(--accent)",
+  };
+  const accentLights = {
+    SOAP: "var(--blue-light)",
+    DAP: "var(--green-light)",
+    TARP: "var(--accent2-light)",
+    BIRP: "var(--accent-light)",
+  };
+  const color = accentColors[format] || "var(--blue)";
+  const colorLight = accentLights[format] || "var(--blue-light)";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      {/* Format badge */}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div style={{ padding: "4px 14px", borderRadius: 20, background: colorLight, color: color, fontWeight: 700, fontSize: "1rem", letterSpacing: "0.05em" }}>{format}</div>
+        <div style={{ fontSize: "0.8rem", color: "var(--text2)" }}>{info.sections.join(" → ")}</div>
+      </div>
+
+      {/* What goes in each section */}
+      <div style={{ padding: "1rem", background: colorLight, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + color }}>
+        <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem" }}>What goes in each section</div>
+        <div style={{ fontSize: "0.8rem", color: "var(--text)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{info.guidance}</div>
+      </div>
+
+      {/* Template */}
+      <div style={{ padding: "1rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
+        <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text3)", marginBottom: "0.6rem" }}>Template structure</div>
+        <div style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.8, whiteSpace: "pre-wrap", fontFamily: "var(--font-mono, monospace)" }}>{info.template}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function NotesPractice({ studentSessions, studentName }) {
@@ -97,23 +127,17 @@ export default function NotesPractice({ studentSessions, studentName }) {
   const [noteText, setNoteText] = useState("");
   const [reviewText, setReviewText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
-  const [view, setView] = useState("list"); // list | editor
+  const [view, setView] = useState("list");
 
   useEffect(function() {
     const saved = loadAttempts();
-    // Filter to this student
-    const mine = saved.filter(function(a) { return a.studentName === studentName; });
-    setAttempts(mine);
+    setAttempts(saved.filter(function(a) { return a.studentName === studentName; }));
   }, [studentName]);
 
   function createNewAttempt() {
-    setCaseContext("");
-    setNoteText("");
-    setReviewText("");
-    setSelectedSession(null);
-    setActiveAttemptId(null);
+    setCaseContext(""); setNoteText(""); setReviewText("");
+    setSelectedSession(null); setActiveAttemptId(null);
     setView("editor");
   }
 
@@ -132,9 +156,8 @@ export default function NotesPractice({ studentSessions, studentName }) {
     if (!activeAttemptId) setActiveAttemptId(id);
     const existing = all.find(function(a) { return a.id === id; });
     const updated = {
-      id,
-      studentName,
-      format: updates.format || format,
+      id, studentName,
+      format: updates.format !== undefined ? updates.format : format,
       caseContext: updates.caseContext !== undefined ? updates.caseContext : caseContext,
       noteText: updates.noteText !== undefined ? updates.noteText : noteText,
       reviewText: updates.reviewText !== undefined ? updates.reviewText : reviewText,
@@ -147,26 +170,21 @@ export default function NotesPractice({ studentSessions, studentName }) {
       ? all.map(function(a) { return a.id === id ? updated : a; })
       : [updated, ...all];
     saveAttempts(newAll);
-    const mine = newAll.filter(function(a) { return a.studentName === studentName; });
-    setAttempts(mine);
+    setAttempts(newAll.filter(function(a) { return a.studentName === studentName; }));
     return id;
   }
 
   function generateRandomCase() {
     const v = CASE_VIGNETTES[Math.floor(Math.random() * CASE_VIGNETTES.length)];
-    const ctx = `Client session summary:\n\n${v.session_detail}\n\nPresenting concern: ${v.presenting}\n\nThis was a 50-minute session. Write a ${format} progress note based on the above information.`;
-    setCaseContext(ctx);
-    setNoteText("");
-    setReviewText("");
+    const ctx = "Client session summary:\n\n" + v.session_detail + "\n\nPresenting concern: " + v.presenting + "\n\nThis was a 50-minute session. Write a " + format + " progress note based on the above information.";
+    setCaseContext(ctx); setNoteText(""); setReviewText("");
     persistAttempt({ caseContext: ctx, noteText: "", reviewText: "", caseName: v.presenting + " — " + v.vignette.split(",")[0] });
   }
 
   function loadSession(session) {
     setSelectedSession(session);
-    const ctx = `Session transcript:\n${session.transcript}\n\nModality: ${session.modality}\nSession type: ${session.session_type}`;
-    setCaseContext(ctx);
-    setNoteText("");
-    setReviewText("");
+    const ctx = "Session transcript:\n" + session.transcript + "\n\nModality: " + session.modality + "\nSession type: " + session.session_type;
+    setCaseContext(ctx); setNoteText(""); setReviewText("");
     persistAttempt({ caseContext: ctx, noteText: "", reviewText: "", caseName: session.modality + " session" });
   }
 
@@ -175,10 +193,14 @@ export default function NotesPractice({ studentSessions, studentName }) {
     persistAttempt({ noteText: val });
   }
 
+  function handleFormatChange(val) {
+    setFormat(val);
+    persistAttempt({ format: val });
+  }
+
   async function submitNote() {
     if (!noteText.trim()) { alert("Please write your note first."); return; }
-    setLoading(true);
-    setReviewText("");
+    setLoading(true); setReviewText("");
     try {
       const res = await fetch("/api/notes", {
         method: "POST",
@@ -203,19 +225,16 @@ export default function NotesPractice({ studentSessions, studentName }) {
     setAttempts(all.filter(function(a) { return a.studentName === studentName; }));
   }
 
-  const formatInfo = NOTE_FORMATS[format];
-
   // ── LIST VIEW ─────────────────────────────────────────────
   if (view === "list") {
     return (
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
           <div style={{ fontSize: "0.9rem", color: "var(--text2)" }}>
-            {attempts.length === 0 ? "No note attempts yet." : `${attempts.length} saved attempt${attempts.length !== 1 ? "s" : ""}`}
+            {attempts.length === 0 ? "No note attempts yet." : attempts.length + " saved attempt" + (attempts.length !== 1 ? "s" : "")}
           </div>
           <button className="btn btn-sm primary" onClick={createNewAttempt}>+ New note</button>
         </div>
-
         {attempts.length === 0 && (
           <div className="card" style={{ textAlign: "center", padding: "2rem" }}>
             <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>📝</div>
@@ -224,7 +243,6 @@ export default function NotesPractice({ studentSessions, studentName }) {
             <button className="btn primary" onClick={createNewAttempt}>Begin</button>
           </div>
         )}
-
         <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
           {attempts.map(function(a) {
             const gradeColors = { "Competent": "var(--green)", "Developing": "var(--accent2)", "Needs Revision": "var(--red)" };
@@ -243,9 +261,9 @@ export default function NotesPractice({ studentSessions, studentName }) {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
                   {!a.reviewText && <span style={{ fontSize: "0.72rem", color: "var(--text3)", background: "var(--surface2)", padding: "2px 8px", borderRadius: 20 }}>Draft</span>}
-                  {a.reviewText && <span style={{ fontSize: "0.72rem", color: color, background: a.grade ? "var(--" + (a.grade === "Competent" ? "green" : a.grade === "Developing" ? "accent2" : "red") + "-light)" : "var(--surface2)", padding: "2px 8px", borderRadius: 20 }}>Reviewed</span>}
+                  {a.reviewText && <span style={{ fontSize: "0.72rem", color: color, padding: "2px 8px", borderRadius: 20, background: "var(--surface2)" }}>Reviewed</span>}
                   <button onClick={function(e) { deleteAttempt(a.id, e); }}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.85rem", padding: "2px 6px" }} title="Delete">✕</button>
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.85rem", padding: "2px 6px" }}>✕</button>
                 </div>
               </button>
             );
@@ -255,21 +273,37 @@ export default function NotesPractice({ studentSessions, studentName }) {
     );
   }
 
-  // ── EDITOR VIEW ───────────────────────────────────────────
+  // ── EDITOR VIEW — two column layout ──────────────────────
   return (
     <div>
       <button onClick={function() { setView("list"); }} style={{ fontSize: "0.85rem", color: "var(--text2)", background: "none", border: "none", cursor: "pointer", padding: "0 0 1rem", fontFamily: "inherit" }}>
         ← Back to my notes
       </button>
 
-      <div className="card">
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
-          <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
-            <label>Note format</label>
-            <select value={format} onChange={function(e) { setFormat(e.target.value); setReviewText(""); persistAttempt({ format: e.target.value }); }}>
-              {Object.keys(NOTE_FORMATS).map(function(f) { return <option key={f}>{f}</option>; })}
-            </select>
-          </div>
+      {/* Format picker row */}
+      <div className="card" style={{ marginBottom: "1rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+          {Object.keys(NOTE_FORMATS).map(function(f) {
+            const isActive = format === f;
+            const colors = { SOAP: "#185FA5", DAP: "#2D6A4F", TARP: "#854F0B", BIRP: "#2D6A6A" };
+            const c = colors[f] || "var(--accent)";
+            return (
+              <button key={f} onClick={function() { handleFormatChange(f); }}
+                style={{
+                  padding: "0.5rem 1.25rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
+                  fontWeight: isActive ? 700 : 500, fontSize: "0.9rem", cursor: "pointer",
+                  border: isActive ? "2px solid " + c : "1px solid var(--border)",
+                  background: isActive ? c : "var(--surface2)",
+                  color: isActive ? "#fff" : "var(--text2)",
+                  transition: "all 0.15s",
+                }}>
+                {f}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
             <label>Case source</label>
             <select value={source} onChange={function(e) { setSource(e.target.value); setCaseContext(""); setReviewText(""); }}>
@@ -277,36 +311,17 @@ export default function NotesPractice({ studentSessions, studentName }) {
               {studentSessions && studentSessions.length > 0 && <option value="session">From my past sessions</option>}
             </select>
           </div>
+          <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: "0" }}>
+            {source === "random" && (
+              <button className="btn btn-sm primary" onClick={generateRandomCase}>{caseContext ? "New case" : "Generate case"}</button>
+            )}
+          </div>
         </div>
 
-        <button className="btn btn-sm" onClick={function() { setShowGuide(!showGuide); }} style={{ marginBottom: "0.75rem" }}>
-          {showGuide ? "Hide" : "Show"} {format} format guide
-        </button>
-
-        {showGuide && formatInfo && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "0.75rem" }}>
-            <div style={{ padding: "0.75rem 1rem", background: "var(--blue-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--blue)", fontSize: "0.82rem", color: "var(--text)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-              <div style={{ fontWeight: 600, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--blue)", marginBottom: "0.5rem" }}>What goes in each section</div>
-              {formatInfo.guidance}
-            </div>
-            <div style={{ padding: "0.75rem 1rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--border2)", fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-              <div style={{ fontWeight: 600, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.5rem" }}>Template structure</div>
-              {formatInfo.template}
-            </div>
-          </div>
-        )}
-
-        {source === "random" && !caseContext && (
-          <button className="btn primary" onClick={generateRandomCase}>Generate case</button>
-        )}
-        {source === "random" && caseContext && (
-          <button className="btn btn-sm" onClick={generateRandomCase}>Generate new case</button>
-        )}
-
         {source === "session" && studentSessions && (
-          <div>
+          <div style={{ marginTop: "0.75rem" }}>
             <div style={{ fontSize: "0.82rem", color: "var(--text2)", marginBottom: "0.5rem" }}>Select a past session:</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", maxHeight: 180, overflowY: "auto" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", maxHeight: 160, overflowY: "auto" }}>
               {studentSessions.map(function(s) {
                 return (
                   <button key={s.id} onClick={function() { loadSession(s); }}
@@ -320,49 +335,62 @@ export default function NotesPractice({ studentSessions, studentName }) {
         )}
       </div>
 
-      {caseContext && (
-        <div className="card">
-          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.5rem" }}>Case context</div>
-          <div style={{ fontSize: "0.875rem", color: "var(--text2)", lineHeight: 1.7, whiteSpace: "pre-wrap", maxHeight: 200, overflowY: "auto" }}>{caseContext}</div>
-        </div>
-      )}
+      {/* Two column layout */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "start" }}>
 
-      {caseContext && (
-        <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)" }}>Your {format} note</div>
-            <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>Auto-saved</div>
+        {/* LEFT: writing area */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {caseContext && (
+            <div className="card">
+              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.5rem" }}>Case context</div>
+              <div style={{ fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.7, whiteSpace: "pre-wrap", maxHeight: 220, overflowY: "auto" }}>{caseContext}</div>
+            </div>
+          )}
+
+          <div className="card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)" }}>Your {format} note</div>
+              <div style={{ fontSize: "0.7rem", color: "var(--text3)" }}>Auto-saved</div>
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text3)", marginBottom: "0.5rem" }}>Sections: {NOTE_FORMATS[format] && NOTE_FORMATS[format].sections.join(" → ")}</div>
+            <textarea
+              value={noteText}
+              onChange={function(e) { handleNoteChange(e.target.value); }}
+              placeholder={"Write your " + format + " note here following the template on the right."}
+              style={{ minHeight: 340, resize: "vertical", lineHeight: 1.7, fontSize: "0.88rem" }}
+            />
+            <button className="btn primary" onClick={submitNote} disabled={loading || !caseContext} style={{ marginTop: "0.75rem" }}>
+              {loading ? "Reviewing..." : "Submit for review"}
+            </button>
           </div>
-          <div style={{ fontSize: "0.78rem", color: "var(--text3)", marginBottom: "0.5rem" }}>Sections: {formatInfo && formatInfo.sections.join(" → ")}</div>
-          <textarea
-            value={noteText}
-            onChange={function(e) { handleNoteChange(e.target.value); }}
-            placeholder={formatInfo ? "Write your " + format + " note here.\n\nRequired sections: " + formatInfo.sections.join(" → ") + "\n\nTip: Show the format guide above to see exactly what goes in each section." : ""}
-            style={{ minHeight: 280, resize: "vertical", lineHeight: 1.7, fontSize: "0.9rem" }}
-          />
-          <button className="btn primary" onClick={submitNote} disabled={loading} style={{ marginTop: "0.75rem" }}>
-            {loading ? "Reviewing..." : "Submit for review"}
-          </button>
-        </div>
-      )}
 
-      {loading && (
-        <div className="card">
-          <div className="response-label sup">Reviewing your note...</div>
-          <Typing />
-        </div>
-      )}
+          {loading && (
+            <div className="card">
+              <div className="response-label sup">Reviewing your note...</div>
+              <Typing />
+            </div>
+          )}
 
-      {reviewText && !loading && (
-        <div className="card">
-          <div className="response-label sup" style={{ marginBottom: "1rem" }}>Note Review</div>
-          <NoteReview reviewText={reviewText} />
-          <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
-            <button className="btn btn-sm primary" onClick={createNewAttempt}>New note</button>
-            <button className="btn btn-sm" onClick={function() { setView("list"); }}>My notes</button>
+          {reviewText && !loading && (
+            <div className="card">
+              <div className="response-label sup" style={{ marginBottom: "1rem" }}>Note Review</div>
+              <NoteReview reviewText={reviewText} />
+              <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
+                <button className="btn btn-sm primary" onClick={createNewAttempt}>New note</button>
+                <button className="btn btn-sm" onClick={function() { setView("list"); }}>My notes</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT: format reference panel — always visible */}
+        <div style={{ position: "sticky", top: "1rem" }}>
+          <div className="card">
+            <FormatReferencePanel format={format} />
           </div>
         </div>
-      )}
+
+      </div>
     </div>
   );
 }
