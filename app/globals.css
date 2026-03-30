@@ -175,3 +175,6 @@ select:focus, input:focus, textarea:focus { border-color: var(--accent); box-sha
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* Sticky grid columns */
+.sticky-col { position: sticky; top: 1rem; align-self: start; }
