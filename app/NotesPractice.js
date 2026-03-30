@@ -17,50 +17,46 @@ function NoteReview({ reviewText }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
-        <span style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, background: gradeBg, color: gradeColor, fontWeight: 600, fontSize: "0.82rem" }}>{data.grade}</span>
+        <span style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, background: gradeBg, color: gradeColor, fontWeight: 600, fontSize: "0.85rem" }}>{data.grade}</span>
         <div style={{ fontSize: "0.9rem", color: "var(--text)", lineHeight: 1.7, flex: 1 }}>{data.overall}</div>
       </div>
       {data.strengths && data.strengths.length > 0 && (
         <div>
-          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--green)", marginBottom: "0.5rem" }}>Strengths</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            {data.strengths.map(function(s, i) {
-              return <div key={i} style={{ padding: "0.6rem 0.9rem", background: "var(--green-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--green)", fontSize: "0.85rem", color: "var(--text)", lineHeight: 1.6 }}>{s}</div>;
-            })}
-          </div>
+          <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--green)", marginBottom: "0.5rem" }}>Strengths</div>
+          {data.strengths.map(function(s, i) {
+            return <div key={i} style={{ padding: "0.65rem 1rem", background: "var(--green-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--green)", fontSize: "0.875rem", color: "var(--text)", lineHeight: 1.65, marginBottom: "0.4rem" }}>{s}</div>;
+          })}
         </div>
       )}
       {data.issues && data.issues.length > 0 && (
         <div>
-          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--red)", marginBottom: "0.5rem" }}>Issues to address</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {data.issues.map(function(issue, i) {
-              return (
-                <div key={i} style={{ padding: "0.75rem 1rem", background: "var(--red-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--red)" }}>
-                  <div style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--red)", marginBottom: "0.25rem" }}>{issue.section}</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--text)", marginBottom: "0.25rem" }}>{issue.problem}</div>
-                  {issue.example && <div style={{ fontSize: "0.8rem", color: "var(--text2)", fontStyle: "italic", marginBottom: "0.25rem" }}>From your note: "{issue.example}"</div>}
-                  {issue.fix && <div style={{ fontSize: "0.82rem", color: "var(--text2)", marginTop: "0.25rem" }}>Fix: {issue.fix}</div>}
-                </div>
-              );
-            })}
-          </div>
+          <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--red)", marginBottom: "0.5rem" }}>Issues to address</div>
+          {data.issues.map(function(issue, i) {
+            return (
+              <div key={i} style={{ padding: "0.75rem 1rem", background: "var(--red-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--red)", marginBottom: "0.6rem" }}>
+                <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--red)", marginBottom: "0.25rem" }}>{issue.section}</div>
+                <div style={{ fontSize: "0.875rem", color: "var(--text)", marginBottom: "0.25rem" }}>{issue.problem}</div>
+                {issue.example && <div style={{ fontSize: "0.82rem", color: "var(--text2)", fontStyle: "italic", marginBottom: "0.25rem" }}>From your note: "{issue.example}"</div>}
+                {issue.fix && <div style={{ fontSize: "0.85rem", color: "var(--text2)", marginTop: "0.25rem" }}>Fix: {issue.fix}</div>}
+              </div>
+            );
+          })}
         </div>
       )}
       {data.missing && data.missing.length > 0 && (
         <div>
-          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--accent2)", marginBottom: "0.5rem" }}>Missing elements</div>
+          <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--accent2)", marginBottom: "0.5rem" }}>Missing elements</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
             {data.missing.map(function(m, i) {
-              return <span key={i} style={{ padding: "3px 10px", background: "var(--accent2-light)", borderRadius: 20, fontSize: "0.78rem", color: "var(--accent2)", fontWeight: 500 }}>{m}</span>;
+              return <span key={i} style={{ padding: "4px 12px", background: "var(--accent2-light)", borderRadius: 20, fontSize: "0.82rem", color: "var(--accent2)", fontWeight: 500 }}>{m}</span>;
             })}
           </div>
         </div>
       )}
       {data.revised_example && (
         <div>
-          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--blue)", marginBottom: "0.5rem" }}>How it could look</div>
-          <div style={{ padding: "0.75rem 1rem", background: "var(--blue-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--blue)", fontSize: "0.85rem", color: "var(--text)", lineHeight: 1.7 }}>{data.revised_example}</div>
+          <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--blue)", marginBottom: "0.5rem" }}>How it could look</div>
+          <div style={{ padding: "0.85rem 1rem", background: "var(--blue-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--blue)", fontSize: "0.875rem", color: "var(--text)", lineHeight: 1.7 }}>{data.revised_example}</div>
         </div>
       )}
     </div>
@@ -75,6 +71,12 @@ function saveAttempts(attempts) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(attempts)); } catch(e) {}
 }
 
+const FORMAT_COLORS = {
+  SOAP: { solid: "#185FA5", light: "var(--blue-light)" },
+  DAP:  { solid: "#2D6A4F", light: "var(--green-light)" },
+  TARP: { solid: "#854F0B", light: "var(--accent2-light)" },
+  BIRP: { solid: "#2D6A6A", light: "var(--accent-light)" },
+};
 
 export default function NotesPractice({ studentSessions, studentName }) {
   const [attempts, setAttempts] = useState([]);
@@ -194,14 +196,14 @@ export default function NotesPractice({ studentSessions, studentName }) {
           <button className="btn btn-sm primary" onClick={createNewAttempt}>+ New note</button>
         </div>
         {attempts.length === 0 && (
-          <div className="card" style={{ textAlign: "center", padding: "2rem" }}>
-            <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>📝</div>
-            <div style={{ fontWeight: 500, marginBottom: "0.5rem" }}>Start your first note</div>
-            <div style={{ fontSize: "0.85rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.6 }}>Choose a case, write your note, and get detailed feedback. Your progress is saved automatically.</div>
+          <div className="card" style={{ textAlign: "center", padding: "2.5rem" }}>
+            <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>📝</div>
+            <div style={{ fontWeight: 500, fontSize: "1.05rem", marginBottom: "0.5rem" }}>Start your first note</div>
+            <div style={{ fontSize: "0.9rem", color: "var(--text2)", marginBottom: "1.5rem", lineHeight: 1.7 }}>Choose a case, write your note, and receive detailed feedback. Your work saves automatically.</div>
             <button className="btn primary" onClick={createNewAttempt}>Begin</button>
           </div>
         )}
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {attempts.map(function(a) {
             const gradeColors = { "Competent": "var(--green)", "Developing": "var(--accent2)", "Needs Revision": "var(--red)" };
             const color = a.grade ? gradeColors[a.grade] : "var(--text3)";
@@ -210,18 +212,18 @@ export default function NotesPractice({ studentSessions, studentName }) {
                 className="card"
                 style={{ textAlign: "left", cursor: "pointer", fontFamily: "inherit", borderLeft: "3px solid " + (a.grade ? gradeColors[a.grade] : "var(--border2)"), display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 500, fontSize: "0.9rem", color: "var(--text)", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.caseName || "Untitled"}</div>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text2)" }}>
+                  <div style={{ fontWeight: 500, fontSize: "0.95rem", color: "var(--text)", marginBottom: "0.25rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.caseName || "Untitled"}</div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--text2)" }}>
                     {a.format}
                     {a.grade && <span style={{ color: color, fontWeight: 500 }}> · {a.grade}</span>}
                     <span style={{ color: "var(--text3)" }}> · {new Date(a.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
-                  {!a.reviewText && <span style={{ fontSize: "0.72rem", color: "var(--text3)", background: "var(--surface2)", padding: "2px 8px", borderRadius: 20 }}>Draft</span>}
-                  {a.reviewText && <span style={{ fontSize: "0.72rem", color: color, padding: "2px 8px", borderRadius: 20, background: "var(--surface2)" }}>Reviewed</span>}
+                  {!a.reviewText && <span style={{ fontSize: "0.75rem", color: "var(--text3)", background: "var(--surface2)", padding: "3px 10px", borderRadius: 20 }}>Draft</span>}
+                  {a.reviewText && <span style={{ fontSize: "0.75rem", color: color, background: "var(--surface2)", padding: "3px 10px", borderRadius: 20 }}>Reviewed</span>}
                   <button onClick={function(e) { deleteAttempt(a.id, e); }}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "0.85rem", padding: "2px 6px" }}>✕</button>
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "1rem", padding: "2px 6px" }}>✕</button>
                 </div>
               </button>
             );
@@ -231,27 +233,37 @@ export default function NotesPractice({ studentSessions, studentName }) {
     );
   }
 
-  // ── EDITOR VIEW — two column layout ──────────────────────
-  return (
-    <div>
-      <button onClick={function() { setView("list"); }} style={{ fontSize: "0.85rem", color: "var(--text2)", background: "none", border: "none", cursor: "pointer", padding: "0 0 1rem", fontFamily: "inherit" }}>
-        ← Back to my notes
-      </button>
+  // ── EDITOR VIEW ───────────────────────────────────────────
+  const fc = FORMAT_COLORS[format] || FORMAT_COLORS.SOAP;
+  const info = NOTE_FORMATS[format];
 
-      {/* Format picker row */}
-      <div className="card" style={{ marginBottom: "1rem" }}>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+  return (
+    <div style={{
+      position: "relative",
+      width: "100vw",
+      left: "50%",
+      transform: "translateX(-50%)",
+      padding: "0 2rem",
+      boxSizing: "border-box",
+      maxWidth: 1300,
+    }}>
+
+      {/* Back + format selector row */}
+      <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+        <button onClick={function() { setView("list"); }} style={{ fontSize: "0.875rem", color: "var(--text2)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+          ← My notes
+        </button>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
           {Object.keys(NOTE_FORMATS).map(function(f) {
             const isActive = format === f;
-            const colors = { SOAP: "#185FA5", DAP: "#2D6A4F", TARP: "#854F0B", BIRP: "#2D6A6A" };
-            const c = colors[f] || "var(--accent)";
+            const c = FORMAT_COLORS[f] || FORMAT_COLORS.SOAP;
             return (
               <button key={f} onClick={function() { handleFormatChange(f); }}
                 style={{
-                  padding: "0.5rem 1.25rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
-                  fontWeight: isActive ? 700 : 500, fontSize: "0.9rem", cursor: "pointer",
-                  border: isActive ? "2px solid " + c : "1px solid var(--border)",
-                  background: isActive ? c : "var(--surface2)",
+                  padding: "0.55rem 1.4rem", borderRadius: "var(--radius-sm)", fontFamily: "inherit",
+                  fontWeight: isActive ? 700 : 500, fontSize: "0.95rem", cursor: "pointer",
+                  border: isActive ? "2px solid " + c.solid : "1px solid var(--border)",
+                  background: isActive ? c.solid : "var(--surface2)",
                   color: isActive ? "#fff" : "var(--text2)",
                   transition: "all 0.15s",
                 }}>
@@ -260,69 +272,68 @@ export default function NotesPractice({ studentSessions, studentName }) {
             );
           })}
         </div>
+      </div>
 
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
-            <label>Case source</label>
-            <select value={source} onChange={function(e) { setSource(e.target.value); setCaseContext(""); setReviewText(""); }}>
-              <option value="random">Random case vignette</option>
-              {studentSessions && studentSessions.length > 0 && <option value="session">From my past sessions</option>}
-            </select>
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: "0" }}>
-            {source === "random" && (
-              <button className="btn btn-sm primary" onClick={generateRandomCase}>{caseContext ? "New case" : "Generate case"}</button>
-            )}
-          </div>
+      {/* Case source controls */}
+      <div className="card" style={{ marginBottom: "1.25rem", display: "flex", gap: "1rem", alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div className="field" style={{ flex: "0 0 220px", marginBottom: 0 }}>
+          <label>Case source</label>
+          <select value={source} onChange={function(e) { setSource(e.target.value); setCaseContext(""); setReviewText(""); }}>
+            <option value="random">Random case vignette</option>
+            {studentSessions && studentSessions.length > 0 && <option value="session">From my past sessions</option>}
+          </select>
         </div>
-
+        {source === "random" && (
+          <button className="btn btn-sm primary" onClick={generateRandomCase} style={{ marginBottom: "0" }}>
+            {caseContext ? "New case" : "Generate case"}
+          </button>
+        )}
         {source === "session" && studentSessions && (
-          <div style={{ marginTop: "0.75rem" }}>
-            <div style={{ fontSize: "0.82rem", color: "var(--text2)", marginBottom: "0.5rem" }}>Select a past session:</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", maxHeight: 160, overflowY: "auto" }}>
-              {studentSessions.map(function(s) {
-                return (
-                  <button key={s.id} onClick={function() { loadSession(s); }}
-                    style={{ textAlign: "left", padding: "0.6rem 0.9rem", borderRadius: "var(--radius-sm)", border: "1px solid " + (selectedSession && selectedSession.id === s.id ? "var(--accent)" : "var(--border)"), background: selectedSession && selectedSession.id === s.id ? "var(--accent-light)" : "var(--surface2)", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", color: "var(--text)" }}>
-                    {s.modality} · {s.session_type} · {new Date(s.date).toLocaleDateString()}
-                  </button>
-                );
-              })}
-            </div>
+          <div style={{ flex: 1, display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            {studentSessions.slice(0, 5).map(function(s) {
+              return (
+                <button key={s.id} onClick={function() { loadSession(s); }}
+                  style={{ padding: "0.45rem 0.9rem", borderRadius: "var(--radius-sm)", border: "1px solid " + (selectedSession && selectedSession.id === s.id ? "var(--accent)" : "var(--border)"), background: selectedSession && selectedSession.id === s.id ? "var(--accent-light)" : "var(--surface2)", cursor: "pointer", fontFamily: "inherit", fontSize: "0.82rem", color: "var(--text)" }}>
+                  {s.modality} · {s.session_type}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Three column layout — break out of app max-width constraint */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: "1.25rem", alignItems: "start", position: "relative" }}>
+      {/* THREE COLUMNS */}
+      <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start" }}>
 
-        {/* LEFT: writing area */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        {/* LEFT — writing area (flex-grow) */}
+        <div style={{ flex: "1 1 400px", minWidth: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
           {caseContext && (
             <div className="card">
-              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.5rem" }}>Case context</div>
-              <div style={{ fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.7, whiteSpace: "pre-wrap", maxHeight: 200, overflowY: "auto" }}>{caseContext}</div>
+              <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.6rem" }}>Case context</div>
+              <div style={{ fontSize: "0.875rem", color: "var(--text2)", lineHeight: 1.75, whiteSpace: "pre-wrap", maxHeight: 200, overflowY: "auto" }}>{caseContext}</div>
             </div>
           )}
           <div className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)" }}>Your {format} note</div>
-              <div style={{ fontSize: "0.7rem", color: "var(--text3)" }}>Auto-saved</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)" }}>Your {format} note</div>
+              <div style={{ fontSize: "0.72rem", color: "var(--text3)" }}>Auto-saved</div>
             </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text3)", marginBottom: "0.5rem" }}>Sections: {NOTE_FORMATS[format] && NOTE_FORMATS[format].sections.join(" → ")}</div>
+            <div style={{ fontSize: "0.78rem", color: "var(--text3)", marginBottom: "0.6rem" }}>
+              Sections: {info && info.sections.join(" → ")}
+            </div>
             <textarea
               value={noteText}
               onChange={function(e) { handleNoteChange(e.target.value); }}
-              placeholder={"Write your " + format + " note here following the template on the right."}
-              style={{ minHeight: 360, resize: "vertical", lineHeight: 1.7, fontSize: "0.88rem" }}
+              placeholder={"Write your " + format + " note here. Use the guide and template on the right as reference."}
+              style={{ minHeight: 420, resize: "vertical", lineHeight: 1.8, fontSize: "0.9rem" }}
             />
-            <button className="btn primary" onClick={submitNote} disabled={loading || !caseContext} style={{ marginTop: "0.75rem" }}>
+            <button className="btn primary" onClick={submitNote} disabled={loading || !caseContext} style={{ marginTop: "0.85rem", fontSize: "0.95rem" }}>
               {loading ? "Reviewing..." : "Submit for review"}
             </button>
           </div>
           {loading && (
             <div className="card">
-              <div className="response-label sup">Reviewing your note...</div>
+              <div className="response-label sup" style={{ marginBottom: "0.5rem" }}>Reviewing your note...</div>
               <Typing />
             </div>
           )}
@@ -330,7 +341,7 @@ export default function NotesPractice({ studentSessions, studentName }) {
             <div className="card">
               <div className="response-label sup" style={{ marginBottom: "1rem" }}>Note Review</div>
               <NoteReview reviewText={reviewText} />
-              <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
+              <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem" }}>
                 <button className="btn btn-sm primary" onClick={createNewAttempt}>New note</button>
                 <button className="btn btn-sm" onClick={function() { setView("list"); }}>My notes</button>
               </div>
@@ -338,42 +349,28 @@ export default function NotesPractice({ studentSessions, studentName }) {
           )}
         </div>
 
-        {/* MIDDLE: what goes in each section */}
-        <div className="sticky-col">
-          {(function() {
-            const info = NOTE_FORMATS[format];
-            const colors = { SOAP: "#185FA5", DAP: "#2D6A4F", TARP: "#854F0B", BIRP: "#2D6A6A" };
-            const lights = { SOAP: "var(--blue-light)", DAP: "var(--green-light)", TARP: "var(--accent2-light)", BIRP: "var(--accent-light)" };
-            const color = colors[format] || "var(--accent)";
-            const light = lights[format] || "var(--accent-light)";
-            return (
-              <div className="card">
-                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem" }}>
-                  <div style={{ padding: "3px 12px", borderRadius: 20, background: light, color: color, fontWeight: 700, fontSize: "0.9rem" }}>{format}</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>section guide</div>
-                </div>
-                <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem" }}>What goes in each section</div>
-                <div style={{ padding: "0.85rem", background: light, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + color }}>
-                  <div style={{ fontSize: "0.85rem", color: "var(--text)", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>{info && info.guidance}</div>
-                </div>
-              </div>
-            );
-          })()}
+        {/* MIDDLE — section guide, fixed width, truly sticky */}
+        <div style={{ flex: "0 0 300px", position: "sticky", top: "1.5rem", alignSelf: "flex-start" }}>
+          <div className="card">
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ padding: "4px 14px", borderRadius: 20, background: fc.light, color: fc.solid, fontWeight: 700, fontSize: "1rem" }}>{format}</div>
+              <div style={{ fontSize: "0.8rem", color: "var(--text3)" }}>section guide</div>
+            </div>
+            <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: fc.solid, marginBottom: "0.6rem" }}>What goes in each section</div>
+            <div style={{ padding: "0.9rem 1rem", background: fc.light, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + fc.solid }}>
+              <div style={{ fontSize: "0.875rem", color: "var(--text)", lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{info && info.guidance}</div>
+            </div>
+          </div>
         </div>
 
-        {/* RIGHT: full template structure */}
-        <div className="sticky-col">
-          {(function() {
-            const info = NOTE_FORMATS[format];
-            return (
-              <div className="card">
-                <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text3)", marginBottom: "0.6rem" }}>Template structure</div>
-                <div style={{ padding: "0.85rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: "0.83rem", color: "var(--text2)", lineHeight: 1.9, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{info && info.template}</div>
-                </div>
-              </div>
-            );
-          })()}
+        {/* RIGHT — template, fixed width, truly sticky */}
+        <div style={{ flex: "0 0 300px", position: "sticky", top: "1.5rem", alignSelf: "flex-start" }}>
+          <div className="card">
+            <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text3)", marginBottom: "0.75rem" }}>Template structure</div>
+            <div style={{ padding: "0.9rem 1rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", overflowY: "auto", maxHeight: "70vh" }}>
+              <div style={{ fontSize: "0.855rem", color: "var(--text2)", lineHeight: 1.9, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{info && info.template}</div>
+            </div>
+          </div>
         </div>
 
       </div>
