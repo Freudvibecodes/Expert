@@ -75,48 +75,6 @@ function saveAttempts(attempts) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(attempts)); } catch(e) {}
 }
 
-// ── FORMAT REFERENCE PANEL ────────────────────────────────────
-function FormatReferencePanel({ format }) {
-  const info = NOTE_FORMATS[format];
-  if (!info) return null;
-
-  const accentColors = {
-    SOAP: "var(--blue)",
-    DAP: "var(--green)",
-    TARP: "var(--accent2)",
-    BIRP: "var(--accent)",
-  };
-  const accentLights = {
-    SOAP: "var(--blue-light)",
-    DAP: "var(--green-light)",
-    TARP: "var(--accent2-light)",
-    BIRP: "var(--accent-light)",
-  };
-  const color = accentColors[format] || "var(--blue)";
-  const colorLight = accentLights[format] || "var(--blue-light)";
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      {/* Format badge */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <div style={{ padding: "4px 14px", borderRadius: 20, background: colorLight, color: color, fontWeight: 700, fontSize: "1rem", letterSpacing: "0.05em" }}>{format}</div>
-        <div style={{ fontSize: "0.8rem", color: "var(--text2)" }}>{info.sections.join(" → ")}</div>
-      </div>
-
-      {/* What goes in each section */}
-      <div style={{ padding: "1rem", background: colorLight, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + color }}>
-        <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem" }}>What goes in each section</div>
-        <div style={{ fontSize: "0.8rem", color: "var(--text)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{info.guidance}</div>
-      </div>
-
-      {/* Template */}
-      <div style={{ padding: "1rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
-        <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text3)", marginBottom: "0.6rem" }}>Template structure</div>
-        <div style={{ fontSize: "0.78rem", color: "var(--text2)", lineHeight: 1.8, whiteSpace: "pre-wrap", fontFamily: "var(--font-mono, monospace)" }}>{info.template}</div>
-      </div>
-    </div>
-  );
-}
 
 export default function NotesPractice({ studentSessions, studentName }) {
   const [attempts, setAttempts] = useState([]);
@@ -335,18 +293,17 @@ export default function NotesPractice({ studentSessions, studentName }) {
         )}
       </div>
 
-      {/* Two column layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "start" }}>
+      {/* Three column layout */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", alignItems: "start" }}>
 
         {/* LEFT: writing area */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {caseContext && (
             <div className="card">
               <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.5rem" }}>Case context</div>
-              <div style={{ fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.7, whiteSpace: "pre-wrap", maxHeight: 220, overflowY: "auto" }}>{caseContext}</div>
+              <div style={{ fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.7, whiteSpace: "pre-wrap", maxHeight: 200, overflowY: "auto" }}>{caseContext}</div>
             </div>
           )}
-
           <div className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
               <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)" }}>Your {format} note</div>
@@ -357,20 +314,18 @@ export default function NotesPractice({ studentSessions, studentName }) {
               value={noteText}
               onChange={function(e) { handleNoteChange(e.target.value); }}
               placeholder={"Write your " + format + " note here following the template on the right."}
-              style={{ minHeight: 340, resize: "vertical", lineHeight: 1.7, fontSize: "0.88rem" }}
+              style={{ minHeight: 360, resize: "vertical", lineHeight: 1.7, fontSize: "0.88rem" }}
             />
             <button className="btn primary" onClick={submitNote} disabled={loading || !caseContext} style={{ marginTop: "0.75rem" }}>
               {loading ? "Reviewing..." : "Submit for review"}
             </button>
           </div>
-
           {loading && (
             <div className="card">
               <div className="response-label sup">Reviewing your note...</div>
               <Typing />
             </div>
           )}
-
           {reviewText && !loading && (
             <div className="card">
               <div className="response-label sup" style={{ marginBottom: "1rem" }}>Note Review</div>
@@ -383,11 +338,42 @@ export default function NotesPractice({ studentSessions, studentName }) {
           )}
         </div>
 
-        {/* RIGHT: format reference panel — always visible */}
+        {/* MIDDLE: what goes in each section */}
         <div style={{ position: "sticky", top: "1rem" }}>
-          <div className="card">
-            <FormatReferencePanel format={format} />
-          </div>
+          {(function() {
+            const info = NOTE_FORMATS[format];
+            const colors = { SOAP: "#185FA5", DAP: "#2D6A4F", TARP: "#854F0B", BIRP: "#2D6A6A" };
+            const lights = { SOAP: "var(--blue-light)", DAP: "var(--green-light)", TARP: "var(--accent2-light)", BIRP: "var(--accent-light)" };
+            const color = colors[format] || "var(--accent)";
+            const light = lights[format] || "var(--accent-light)";
+            return (
+              <div className="card">
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.85rem" }}>
+                  <div style={{ padding: "3px 12px", borderRadius: 20, background: light, color: color, fontWeight: 700, fontSize: "0.9rem" }}>{format}</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>section guide</div>
+                </div>
+                <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: color, marginBottom: "0.6rem" }}>What goes in each section</div>
+                <div style={{ padding: "0.85rem", background: light, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + color }}>
+                  <div style={{ fontSize: "0.78rem", color: "var(--text)", lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{info && info.guidance}</div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* RIGHT: full template structure */}
+        <div style={{ position: "sticky", top: "1rem" }}>
+          {(function() {
+            const info = NOTE_FORMATS[format];
+            return (
+              <div className="card">
+                <div style={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text3)", marginBottom: "0.6rem" }}>Template structure</div>
+                <div style={{ padding: "0.85rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: "0.76rem", color: "var(--text2)", lineHeight: 1.85, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{info && info.template}</div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
       </div>
