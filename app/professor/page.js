@@ -135,50 +135,99 @@ function ReviewRenderer({ text }) {
   );
 }
 
-function formatDuration(seconds) {
-  if (!seconds) return null;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return m + "m " + s + "s";
+function StudentTrendsChart({ sessions }) {
+  if (!sessions || sessions.length < 2) return null;
+  const KEY_DIMS = [
+    "Rapport and therapeutic alliance",
+    "Question types (open vs closed, timing)",
+    "Paraphrasing",
+    "Emotional attunement",
+    "Session management (opening, structure, closing)",
+  ];
+  const RATING_SCORE = { "strong": 3, "developing": 2, "needs work": 1 };
+  function getScore(session, dim) {
+    if (!session.review) return null;
+    try {
+      const data = JSON.parse(session.review);
+      const d = data.dimensions && data.dimensions.find(function(x) { return x.name.toLowerCase() === dim.toLowerCase(); });
+      if (!d) return null;
+      return RATING_SCORE[d.rating.toLowerCase()] || null;
+    } catch(e) { return null; }
+  }
+  const W = 520, H = 160, padL = 8, padR = 8, padT = 10, padB = 30;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+  const colors = ["#185FA5","#2D6A4F","#854F0B","#8B2020","#534AB7"];
+  const sorted = sessions.slice().sort(function(a,b) { return new Date(a.date) - new Date(b.date); });
+  function getPoints(dim) {
+    const pts = [];
+    sorted.forEach(function(s, i) {
+      const score = getScore(s, dim);
+      if (score !== null) {
+        const x = padL + (sorted.length === 1 ? innerW/2 : (i/(sorted.length-1))*innerW);
+        const y = padT + innerH - ((score-1)/2)*innerH;
+        pts.push({ x, y, score, label: new Date(s.date).toLocaleDateString("en-CA", { month:"short", day:"numeric" }) });
+      }
+    });
+    return pts;
+  }
+  return (
+    <div style={{ marginBottom: "1.5rem" }}>
+      <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text3)", marginBottom: "0.75rem" }}>Progress over time</div>
+      <div style={{ overflowX: "auto" }}>
+        <svg width={W} height={H} style={{ display: "block", maxWidth: "100%" }}>
+          {[1,2,3].map(function(v) {
+            const y = padT + innerH - ((v-1)/2)*innerH;
+            return (
+              <g key={v}>
+                <line x1={padL} x2={W-padR} y1={y} y2={y} stroke="var(--border)" strokeWidth={0.5} />
+                <text x={padL} y={y-3} fontSize={9} fill="var(--text3)">{v===3?"Strong":v===2?"Developing":"Needs Work"}</text>
+              </g>
+            );
+          })}
+          {sorted.map(function(s, i) {
+            const x = padL + (sorted.length===1 ? innerW/2 : (i/(sorted.length-1))*innerW);
+            return <text key={i} x={x} y={H-8} fontSize={9} fill="var(--text3)" textAnchor="middle">{new Date(s.date).toLocaleDateString("en-CA",{month:"short",day:"numeric"})}</text>;
+          })}
+          {KEY_DIMS.map(function(dim, di) {
+            const pts = getPoints(dim);
+            if (pts.length < 1) return null;
+            const color = colors[di % colors.length];
+            const pathD = pts.map(function(p,i){return(i===0?"M":"L")+p.x+","+p.y;}).join(" ");
+            return (
+              <g key={dim}>
+                {pts.length > 1 && <path d={pathD} fill="none" stroke={color} strokeWidth={1.5} strokeOpacity={0.8} />}
+                {pts.map(function(p,i){return <circle key={i} cx={p.x} cy={p.y} r={3} fill={color} />;  })}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+        {KEY_DIMS.map(function(dim, di) {
+          return (
+            <div key={dim} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.72rem", color: "var(--text2)" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: colors[di % colors.length], flexShrink: 0 }} />
+              {dim.split("(")[0].trim()}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
-export default function ProfessorPage() {
-  const [password, setPassword] = useState("");
-  const [authed, setAuthed] = useState(false);
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+function StudentDetailView({ student, sessions, password, onBack }) {
   const [selected, setSelected] = useState(null);
-  const [filterStudent, setFilterStudent] = useState("all");
   const [activeTab, setActiveTab] = useState("review");
   const [noteText, setNoteText] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [noteSaved, setNoteSaved] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [allSessions, setAllSessions] = useState(sessions);
 
-  useEffect(function() {
-    try {
-      const saved = localStorage.getItem("clinicTheme");
-      if (saved) { setDarkMode(saved === "dark"); }
-      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) { setDarkMode(true); }
-    } catch(e) {}
-  }, []);
+  const SESSION_TYPE_LABELS = { intake:"Intake", early:"Early", mid:"Mid-therapy", closing:"Closing", crisis:"Crisis" };
 
-  useEffect(function() {
-    document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
-    try { localStorage.setItem("clinicTheme", darkMode ? "dark" : "light"); } catch(e) {}
-  }, [darkMode]);
-
-  async function login() {
-    setLoading(true); setError("");
-    try {
-      const res = await fetch("/api/sessions?all=true&password=" + encodeURIComponent(password));
-      if (!res.ok) { setError("Incorrect password."); setLoading(false); return; }
-      const data = await res.json();
-      setSessions(data); setAuthed(true);
-    } catch(e) { setError("Connection issue — please try again."); }
-    setLoading(false);
-  }
+  function formatDate(d) { return new Date(d).toLocaleDateString("en-CA", { year:"numeric", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" }); }
+  function formatDuration(s) { if (!s) return null; return Math.floor(s/60) + "m " + (s%60) + "s"; }
 
   async function saveNote() {
     if (!selected || !noteText.trim()) return;
@@ -189,116 +238,74 @@ export default function ProfessorPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: selected.id, professor_note: noteText.trim(), password }),
       });
-      setSessions(function(prev) { return prev.map(function(s) { return s.id === selected.id ? { ...s, professor_note: noteText.trim() } : s; }); });
-      setSelected(function(s) { return { ...s, professor_note: noteText.trim() }; });
+      const updated = { ...selected, professor_note: noteText.trim() };
+      setSelected(updated);
+      setAllSessions(function(prev) { return prev.map(function(s) { return s.id === selected.id ? updated : s; }); });
       setNoteSaved(true);
       setTimeout(function() { setNoteSaved(false); }, 2000);
     } catch(e) {}
     setSavingNote(false);
   }
 
-  const students = [...new Set(sessions.map(function(s) { return s.student_name; }))].sort();
-  const filtered = filterStudent === "all" ? sessions : sessions.filter(function(s) { return s.student_name === filterStudent; });
-
-  function formatDate(d) {
-    return new Date(d).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-  }
-
-  const SESSION_TYPE_LABELS = { intake: "Intake", early: "Early", mid: "Mid-therapy", closing: "Closing", crisis: "Crisis" };
-
-  if (!authed) {
-    return (
-      <div style={{ fontFamily: "inherit" }}>
-        <button className="theme-toggle" onClick={function() { setDarkMode(function(d) { return !d; }); }} title={darkMode ? "Switch to light mode" : "Switch to dark mode"}>
-          {darkMode ? "☀" : "☾"}
-        </button>
-        <div style={{ maxWidth: 400, margin: "4rem auto", padding: "0 1.5rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-            <h1 style={{ fontSize: "2rem", color: "var(--text)", marginBottom: "0.5rem" }}>Professor Access</h1>
-            <p style={{ fontSize: "0.9rem", color: "var(--text2)" }}>Enter your password to view all student sessions.</p>
-          </div>
-          <div className="card">
-            <div className="field">
-              <label>Password</label>
-              <input type="password" value={password} onChange={function(e) { setPassword(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") login(); }} placeholder="Enter password" />
-            </div>
-            {error && <div style={{ fontSize: "0.85rem", color: "var(--red)", marginBottom: "0.75rem" }}>{error}</div>}
-            <button className="btn primary" onClick={login} disabled={loading}>{loading ? "Loading..." : "Access dashboard"}</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Summary stats
+  const totalSessions = allSessions.length;
+  const avgDuration = allSessions.filter(function(s){return s.duration_seconds > 0;}).length > 0
+    ? Math.round(allSessions.filter(function(s){return s.duration_seconds>0;}).reduce(function(a,s){return a+s.duration_seconds;},0) / allSessions.filter(function(s){return s.duration_seconds>0;}).length / 60)
+    : null;
+  const modalities = [...new Set(allSessions.map(function(s){return s.modality;}))];
 
   if (selected) {
     return (
-      <div className="app">
-        <button className="theme-toggle" onClick={function() { setDarkMode(function(d) { return !d; }); }}>{darkMode ? "☀" : "☾"}</button>
-        <button onClick={function() { setSelected(null); setActiveTab("review"); setNoteText(""); }}
-          style={{ fontSize: "0.85rem", color: "var(--text2)", background: "none", border: "none", cursor: "pointer", padding: "0 0 1.5rem", fontFamily: "inherit" }}>
-          ← Back to dashboard
+      <div>
+        <button onClick={function(){setSelected(null);setActiveTab("review");setNoteText("");}} style={{fontSize:"0.85rem",color:"var(--text2)",background:"none",border:"none",cursor:"pointer",padding:"0 0 1rem",fontFamily:"inherit"}}>
+          ← Back to {student}
         </button>
         <div className="card">
-          <div style={{ fontWeight: 500, fontSize: "1rem", color: "var(--text)" }}>{selected.student_name}</div>
-          <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 4, display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div style={{fontWeight:500,fontSize:"1rem",color:"var(--text)"}}>{selected.modality}</div>
+          <div style={{fontSize:"0.8rem",color:"var(--text2)",marginTop:4,display:"flex",flexWrap:"wrap",gap:"0.5rem"}}>
             <span>{formatDate(selected.date)}</span>
-            <span>·</span><span>{selected.modality}</span>
-            <span>·</span><span>{SESSION_TYPE_LABELS[selected.session_type] || selected.session_type}</span>
-            <span>·</span><span>{selected.mode === "solo" ? "Solo Practice" : "Group Supervision"}</span>
-            {selected.duration_seconds > 0 && <><span>·</span><span>{formatDuration(selected.duration_seconds)}</span></>}
-            {selected.issue && selected.issue !== "" && <><span>·</span><span>{selected.issue}</span></>}
+            <span>·</span><span>{SESSION_TYPE_LABELS[selected.session_type]||selected.session_type}</span>
+            <span>·</span><span>{selected.mode==="solo"?"Solo":"Group"}</span>
+            {selected.duration_seconds>0&&<><span>·</span><span>{formatDuration(selected.duration_seconds)}</span></>}
+            {selected.issue&&selected.issue!==""&&<><span>·</span><span>{selected.issue}</span></>}
           </div>
-          {selected.intention && selected.intention !== "" && (
-            <div style={{ marginTop: "0.5rem", fontSize: "0.82rem", color: "var(--text2)", background: "var(--blue-light)", padding: "0.4rem 0.75rem", borderRadius: "var(--radius-sm)" }}>
+          {selected.intention&&selected.intention!==""&&(
+            <div style={{marginTop:"0.5rem",fontSize:"0.82rem",color:"var(--text2)",background:"var(--blue-light)",padding:"0.4rem 0.75rem",borderRadius:"var(--radius-sm)"}}>
               Student intention: {selected.intention}
             </div>
           )}
         </div>
-
         <div className="tabs">
-          {["review", "transcript", "note"].map(function(tab) {
-            return (
-              <button key={tab} className={"tab" + (activeTab === tab ? " active" : "")} onClick={function() { setActiveTab(tab); }}>
-                {tab === "note" ? "Add note" : tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            );
+          {["review","transcript","note"].map(function(tab){
+            return <button key={tab} className={"tab"+(activeTab===tab?" active":"")} onClick={function(){setActiveTab(tab);}}>{tab==="note"?"Add note":tab.charAt(0).toUpperCase()+tab.slice(1)}</button>;
           })}
         </div>
-
-        {activeTab === "review" && (
+        {activeTab==="review"&&(
           <div className="card">
-            {selected.professor_note && (
-              <div style={{ marginBottom: "1.25rem", padding: "0.75rem 1rem", background: "var(--accent2-light)", borderRadius: "var(--radius-sm)", borderLeft: "3px solid var(--accent2)" }}>
-                <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--accent2)", marginBottom: "0.25rem" }}>Your note</div>
-                <div style={{ fontSize: "0.875rem", color: "var(--text2)", lineHeight: 1.6 }}>{selected.professor_note}</div>
+            {selected.professor_note&&(
+              <div style={{marginBottom:"1.25rem",padding:"0.75rem 1rem",background:"var(--accent2-light)",borderRadius:"var(--radius-sm)",borderLeft:"3px solid var(--accent2)"}}>
+                <div style={{fontSize:"0.72rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em",color:"var(--accent2)",marginBottom:"0.25rem"}}>Your note</div>
+                <div style={{fontSize:"0.875rem",color:"var(--text2)",lineHeight:1.6}}>{selected.professor_note}</div>
               </div>
             )}
             <ReviewRenderer text={selected.review} />
           </div>
         )}
-
-        {activeTab === "transcript" && (
+        {activeTab==="transcript"&&(
           <div className="card">
             <div className="section-label">Transcript</div>
-            <div style={{ fontSize: "0.875rem", lineHeight: 1.8, color: "var(--text2)", whiteSpace: "pre-wrap" }}>{selected.transcript || "No transcript recorded."}</div>
+            <div style={{fontSize:"0.875rem",lineHeight:1.8,color:"var(--text2)",whiteSpace:"pre-wrap"}}>{selected.transcript||"No transcript recorded."}</div>
           </div>
         )}
-
-        {activeTab === "note" && (
+        {activeTab==="note"&&(
           <div className="card">
-            <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--accent2)", marginBottom: "0.75rem" }}>
-              Leave a note for {selected.student_name}
-            </div>
-            <textarea value={noteText} onChange={function(e) { setNoteText(e.target.value); }}
-              placeholder="Write your feedback here — the student will see this when they open this session..."
-              style={{ minHeight: 140, resize: "vertical", lineHeight: 1.7 }} />
-            <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <button onClick={saveNote} disabled={savingNote || !noteText.trim()}
-                className="btn btn-sm"
-                style={{ background: "var(--accent2)", color: "#fff", borderColor: "var(--accent2)", opacity: savingNote || !noteText.trim() ? 0.5 : 1 }}>
-                {savingNote ? "Saving..." : "Save note"}
+            <div style={{fontSize:"0.75rem",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em",color:"var(--accent2)",marginBottom:"0.75rem"}}>Leave a note for {student}</div>
+            <textarea value={noteText} onChange={function(e){setNoteText(e.target.value);}} placeholder="Write your feedback here — the student will see this when they open this session..." style={{minHeight:140,resize:"vertical",lineHeight:1.7}} />
+            <div style={{marginTop:"0.75rem",display:"flex",alignItems:"center",gap:"0.75rem"}}>
+              <button onClick={saveNote} disabled={savingNote||!noteText.trim()} className="btn btn-sm" style={{background:"var(--accent2)",color:"#fff",borderColor:"var(--accent2)",opacity:savingNote||!noteText.trim()?0.5:1}}>
+                {savingNote?"Saving...":"Save note"}
               </button>
-              {noteSaved && <span style={{ fontSize: "0.85rem", color: "var(--green)" }}>Saved — student will see this.</span>}
+              {noteSaved&&<span style={{fontSize:"0.85rem",color:"var(--green)"}}>Saved — student will see this.</span>}
             </div>
           </div>
         )}
@@ -307,52 +314,134 @@ export default function ProfessorPage() {
   }
 
   return (
+    <div>
+      <button onClick={onBack} style={{fontSize:"0.85rem",color:"var(--text2)",background:"none",border:"none",cursor:"pointer",padding:"0 0 1rem",fontFamily:"inherit"}}>← All students</button>
+      <div className="header" style={{paddingTop:"1rem",paddingBottom:"1.5rem",marginBottom:"1rem"}}>
+        <h1 style={{fontSize:"1.8rem"}}>{student}</h1>
+        <p>{totalSessions} session{totalSessions!==1?"s":""}{avgDuration?" · avg "+avgDuration+"min":""} · {modalities.join(", ")}</p>
+      </div>
+
+      {allSessions.length >= 2 && (
+        <div className="card"><StudentTrendsChart sessions={allSessions} /></div>
+      )}
+
+      <div style={{display:"flex",flexDirection:"column",gap:"0.6rem"}}>
+        {allSessions.map(function(s){
+          return (
+            <button key={s.id} onClick={function(){setSelected(s);setNoteText(s.professor_note||"");setActiveTab("review");}}
+              className="card"
+              style={{textAlign:"left",cursor:"pointer",fontFamily:"inherit",transition:"border-color 0.15s"}}
+              onMouseOver={function(e){e.currentTarget.style.borderColor="var(--border2)";}}
+              onMouseOut={function(e){e.currentTarget.style.borderColor="var(--border)";}}>
+              <div className="row">
+                <div>
+                  <div style={{fontWeight:500,fontSize:"0.9rem",color:"var(--text)"}}>{s.modality} — {SESSION_TYPE_LABELS[s.session_type]||s.session_type}</div>
+                  <div style={{fontSize:"0.78rem",color:"var(--text2)",marginTop:2}}>
+                    {s.mode==="solo"?"Solo":"Group"}
+                    {s.duration_seconds>0&&" · "+formatDuration(s.duration_seconds)}
+                    {s.issue&&s.issue!==""&&" · "+s.issue}
+                  </div>
+                  {s.intention&&s.intention!==""&&<div style={{fontSize:"0.75rem",color:"var(--text3)",marginTop:1,fontStyle:"italic"}}>Focus: {s.intention}</div>}
+                  {s.professor_note&&<div style={{fontSize:"0.75rem",color:"var(--accent2)",marginTop:1}}>Note added</div>}
+                </div>
+                <div style={{fontSize:"0.75rem",color:"var(--text3)",whiteSpace:"nowrap"}}>{formatDate(s.date)}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function ProfessorPage() {
+  const [password, setPassword] = useState("");
+  const [authed, setAuthed] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(function() {
+    try {
+      const saved = localStorage.getItem("clinicTheme");
+      if (saved) setDarkMode(saved==="dark");
+      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) setDarkMode(true);
+    } catch(e) {}
+  }, []);
+
+  useEffect(function() {
+    document.documentElement.setAttribute("data-theme", darkMode?"dark":"light");
+    try { localStorage.setItem("clinicTheme", darkMode?"dark":"light"); } catch(e) {}
+  }, [darkMode]);
+
+  async function login() {
+    setLoading(true); setError("");
+    try {
+      const res = await fetch("/api/sessions?all=true&password="+encodeURIComponent(password));
+      if (!res.ok) { setError("Incorrect password."); setLoading(false); return; }
+      const data = await res.json();
+      setSessions(data); setAuthed(true);
+    } catch(e) { setError("Connection issue — please try again."); }
+    setLoading(false);
+  }
+
+  const students = [...new Set(sessions.map(function(s){return s.student_name;}))].sort();
+
+  if (!authed) {
+    return (
+      <div style={{fontFamily:"inherit"}}>
+        <button className="theme-toggle" onClick={function(){setDarkMode(function(d){return !d;})}}>{darkMode?"☀":"☾"}</button>
+        <div style={{maxWidth:400,margin:"4rem auto",padding:"0 1.5rem"}}>
+          <div style={{textAlign:"center",marginBottom:"2rem"}}>
+            <h1 style={{fontSize:"2rem",color:"var(--text)",marginBottom:"0.5rem"}}>Professor Access</h1>
+            <p style={{fontSize:"0.9rem",color:"var(--text2)"}}>Enter your password to view all student sessions.</p>
+          </div>
+          <div className="card">
+            <div className="field">
+              <label>Password</label>
+              <input type="password" value={password} onChange={function(e){setPassword(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")login();}} placeholder="Enter password" />
+            </div>
+            {error&&<div style={{fontSize:"0.85rem",color:"var(--red)",marginBottom:"0.75rem"}}>{error}</div>}
+            <button className="btn primary" onClick={login} disabled={loading}>{loading?"Loading...":"Access dashboard"}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (selectedStudent) {
+    const studentSessions = sessions.filter(function(s){return s.student_name===selectedStudent;}).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    return (
+      <div className="app">
+        <button className="theme-toggle" onClick={function(){setDarkMode(function(d){return !d;})}}>{darkMode?"☀":"☾"}</button>
+        <StudentDetailView student={selectedStudent} sessions={studentSessions} password={password} onBack={function(){setSelectedStudent(null);}} />
+      </div>
+    );
+  }
+
+  return (
     <div className="app">
-      <button className="theme-toggle" onClick={function() { setDarkMode(function(d) { return !d; }); }}>{darkMode ? "☀" : "☾"}</button>
+      <button className="theme-toggle" onClick={function(){setDarkMode(function(d){return !d;})}}>{darkMode?"☀":"☾"}</button>
       <div className="header">
         <h1>Professor Dashboard</h1>
         <p>{sessions.length} sessions across {students.length} students</p>
       </div>
-
-      <div className="card">
-        <div className="field">
-          <label>Filter by student</label>
-          <select value={filterStudent} onChange={function(e) { setFilterStudent(e.target.value); }}>
-            <option value="all">All students ({sessions.length})</option>
-            {students.map(function(s) {
-              const count = sessions.filter(function(x) { return x.student_name === s; }).length;
-              return <option key={s} value={s}>{s} ({count})</option>;
-            })}
-          </select>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        {filtered.length === 0 && <div style={{ fontSize: "0.875rem", color: "var(--text3)", fontStyle: "italic", padding: "1rem 0" }}>No sessions yet.</div>}
-        {filtered.map(function(s) {
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"0.75rem"}}>
+        {students.map(function(student){
+          const studentSessions = sessions.filter(function(s){return s.student_name===student;});
+          const lastSession = studentSessions[0];
+          const modalities = [...new Set(studentSessions.map(function(s){return s.modality;}))];
           return (
-            <button key={s.id} onClick={function() { setSelected(s); setNoteText(s.professor_note || ""); setActiveTab("review"); }}
+            <button key={student} onClick={function(){setSelectedStudent(student);}}
               className="card"
-              style={{ textAlign: "left", cursor: "pointer", fontFamily: "inherit", width: "100%", transition: "border-color 0.15s" }}
-              onMouseOver={function(e) { e.currentTarget.style.borderColor = "var(--border2)"; }}
-              onMouseOut={function(e) { e.currentTarget.style.borderColor = "var(--border)"; }}>
-              <div className="row">
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: "0.95rem", color: "var(--text)" }}>{s.student_name}</div>
-                  <div style={{ fontSize: "0.8rem", color: "var(--text2)", marginTop: 3 }}>
-                    {s.modality}
-                    <span style={{ margin: "0 0.3rem", opacity: 0.4 }}>·</span>
-                    {SESSION_TYPE_LABELS[s.session_type] || s.session_type}
-                    <span style={{ margin: "0 0.3rem", opacity: 0.4 }}>·</span>
-                    {s.mode === "solo" ? "Solo" : "Group"}
-                    {s.duration_seconds > 0 && <><span style={{ margin: "0 0.3rem", opacity: 0.4 }}>·</span>{formatDuration(s.duration_seconds)}</>}
-                    {s.issue && s.issue !== "" && <><span style={{ margin: "0 0.3rem", opacity: 0.4 }}>·</span>{s.issue}</>}
-                  </div>
-                  {s.intention && s.intention !== "" && <div style={{ fontSize: "0.78rem", color: "var(--text3)", marginTop: 2, fontStyle: "italic" }}>Focus: {s.intention}</div>}
-                  {s.professor_note && <div style={{ fontSize: "0.78rem", color: "var(--accent2)", marginTop: 2 }}>Note added</div>}
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text3)", whiteSpace: "nowrap", marginLeft: "1rem" }}>{formatDate(s.date)}</div>
-              </div>
+              style={{textAlign:"left",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}
+              onMouseOver={function(e){e.currentTarget.style.borderColor="var(--accent)";e.currentTarget.style.boxShadow="0 0 0 3px var(--accent-light)";}}
+              onMouseOut={function(e){e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.boxShadow="var(--shadow)";}}>
+              <div style={{fontWeight:600,fontSize:"0.95rem",color:"var(--text)",marginBottom:"0.35rem"}}>{student}</div>
+              <div style={{fontSize:"0.78rem",color:"var(--text2)",marginBottom:"0.5rem"}}>{studentSessions.length} session{studentSessions.length!==1?"s":""} · {modalities.slice(0,2).join(", ")}{modalities.length>2?" +"+( modalities.length-2)+" more":""}</div>
+              {lastSession&&<div style={{fontSize:"0.72rem",color:"var(--text3)"}}>Last: {new Date(lastSession.date).toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"})}</div>}
             </button>
           );
         })}
