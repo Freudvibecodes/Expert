@@ -71,6 +71,83 @@ function saveAttempts(attempts) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(attempts)); } catch(e) {}
 }
 
+function GuidanceRenderer({ guidance, color, light }) {
+  if (!guidance) return null;
+
+  // Parse the guidance text into sections
+  // Each section starts with "• X - " or "• X (X):" pattern
+  const lines = guidance.split("\n").filter(function(l) { return l.trim(); });
+  const sections = [];
+  let current = null;
+
+  lines.forEach(function(line) {
+    const trimmed = line.trim();
+    // Detect section header lines like "• Subjective (S):" or "• Treatment (T):"
+    const headerMatch = trimmed.match(/^[•\-]\s+(.+?):\s*(.*)$/);
+    if (headerMatch) {
+      if (current) sections.push(current);
+      current = {
+        header: headerMatch[1].trim(),
+        body: headerMatch[2].trim(),
+        bullets: [],
+      };
+    } else if (trimmed.startsWith("•") || trimmed.startsWith("-")) {
+      const body = trimmed.replace(/^[•\-]\s*/, "").trim();
+      if (current) {
+        current.bullets.push(body);
+      } else {
+        sections.push({ header: null, body: body, bullets: [] });
+      }
+    } else if (trimmed && current) {
+      current.body = (current.body ? current.body + " " : "") + trimmed;
+    }
+  });
+  if (current) sections.push(current);
+
+  // If parsing didn't work well, just render the raw text cleanly
+  if (sections.length === 0) {
+    return (
+      <div style={{ padding: "0.9rem 1rem", background: light, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + color }}>
+        <div style={{ fontSize: "0.875rem", color: "var(--text)", lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{guidance}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+      {sections.map(function(section, i) {
+        return (
+          <div key={i} style={{ padding: "0.85rem 1rem", background: light, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + color }}>
+            {section.header && (
+              <div style={{
+                fontSize: "0.88rem",
+                fontWeight: 700,
+                color: color,
+                marginBottom: section.body || section.bullets.length > 0 ? "0.4rem" : 0,
+                textDecoration: "underline",
+                textUnderlineOffset: "3px",
+                letterSpacing: "0.01em",
+              }}>
+                {section.header}
+              </div>
+            )}
+            {section.body && (
+              <div style={{ fontSize: "0.875rem", color: "var(--text)", lineHeight: 1.75 }}>{section.body}</div>
+            )}
+            {section.bullets.length > 0 && (
+              <ul style={{ margin: section.body ? "0.4rem 0 0 0" : 0, paddingLeft: "1.1rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                {section.bullets.map(function(b, j) {
+                  return <li key={j} style={{ fontSize: "0.865rem", color: "var(--text2)", lineHeight: 1.65 }}>{b}</li>;
+                })}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const FORMAT_COLORS = {
   SOAP: { solid: "#185FA5", light: "var(--blue-light)" },
   DAP:  { solid: "#2D6A4F", light: "var(--green-light)" },
@@ -350,24 +427,22 @@ export default function NotesPractice({ studentSessions, studentName }) {
         </div>
 
         {/* MIDDLE — section guide, fixed width, truly sticky */}
-        <div style={{ flex: "0 0 300px", position: "sticky", top: "1.5rem", alignSelf: "flex-start" }}>
+        <div style={{ flex: "0 0 300px", position: "sticky", top: "1.5rem", maxHeight: "calc(100vh - 3rem)", overflowY: "auto", alignSelf: "flex-start" }}>
           <div className="card">
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
               <div style={{ padding: "4px 14px", borderRadius: 20, background: fc.light, color: fc.solid, fontWeight: 700, fontSize: "1rem" }}>{format}</div>
               <div style={{ fontSize: "0.8rem", color: "var(--text3)" }}>section guide</div>
             </div>
-            <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: fc.solid, marginBottom: "0.6rem" }}>What goes in each section</div>
-            <div style={{ padding: "0.9rem 1rem", background: fc.light, borderRadius: "var(--radius-sm)", borderLeft: "3px solid " + fc.solid }}>
-              <div style={{ fontSize: "0.875rem", color: "var(--text)", lineHeight: 1.85, whiteSpace: "pre-wrap" }}>{info && info.guidance}</div>
-            </div>
+            <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: fc.solid, marginBottom: "0.75rem" }}>What goes in each section</div>
+            <GuidanceRenderer guidance={info && info.guidance} color={fc.solid} light={fc.light} />
           </div>
         </div>
 
         {/* RIGHT — template, fixed width, truly sticky */}
-        <div style={{ flex: "0 0 300px", position: "sticky", top: "1.5rem", alignSelf: "flex-start" }}>
+        <div style={{ flex: "0 0 300px", position: "sticky", top: "1.5rem", maxHeight: "calc(100vh - 3rem)", overflowY: "auto", alignSelf: "flex-start" }}>
           <div className="card">
             <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text3)", marginBottom: "0.75rem" }}>Template structure</div>
-            <div style={{ padding: "0.9rem 1rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", overflowY: "auto", maxHeight: "70vh" }}>
+            <div style={{ padding: "0.9rem 1rem", background: "var(--surface2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
               <div style={{ fontSize: "0.855rem", color: "var(--text2)", lineHeight: 1.9, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{info && info.template}</div>
             </div>
           </div>
