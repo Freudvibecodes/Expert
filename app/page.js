@@ -854,11 +854,15 @@ function SetupScreen({ studentName, onStart, onHistory }) {
         )}
 
         {mode === "notes" && (
-          <div>
-            <p style={{ fontSize: "0.875rem", color: "var(--text2)", marginBottom: "1.25rem", lineHeight: 1.7 }}>
-              Practice writing clinical progress notes in SOAP, DAP, TARP, or BIRP format. Use a random case or one of your past sessions. Claude reviews your note with specific, structured feedback.
-            </p>
-            <NotesPractice studentSessions={[]} studentName={studentName} />
+          <div style={{ margin: "0 -1.25rem" }}>
+            <div style={{ padding: "0 1.25rem", marginBottom: "1rem" }}>
+              <p style={{ fontSize: "0.875rem", color: "var(--text2)", lineHeight: 1.7 }}>
+                Practice writing clinical progress notes in SOAP, DAP, TARP, or BIRP format. Use a random case or one of your past sessions. Claude reviews your note with specific, structured feedback.
+              </p>
+            </div>
+            <div style={{ padding: "0 1.25rem" }}>
+              <NotesPractice studentSessions={[]} studentName={studentName} />
+            </div>
           </div>
         )}
 
