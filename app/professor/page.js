@@ -376,13 +376,21 @@ export default function ProfessorPage() {
     try { localStorage.setItem("clinicTheme", darkMode?"dark":"light"); } catch(e) {}
   }, [darkMode]);
 
+  const [allStudents, setAllStudents] = useState([]);
+
   async function login() {
     setLoading(true); setError("");
     try {
-      const res = await fetch("/api/sessions?all=true&password="+encodeURIComponent(password));
-      if (!res.ok) { setError("Incorrect password."); setLoading(false); return; }
-      const data = await res.json();
-      setSessions(data); setAuthed(true);
+      const [sessRes, studRes] = await Promise.all([
+        fetch("/api/sessions?all=true&password="+encodeURIComponent(password)),
+        fetch("/api/students?password="+encodeURIComponent(password)),
+      ]);
+      if (!sessRes.ok) { setError("Incorrect password."); setLoading(false); return; }
+      const sessData = await sessRes.json();
+      const studData = studRes.ok ? await studRes.json() : [];
+      setSessions(sessData);
+      setAllStudents(studData || []);
+      setAuthed(true);
     } catch(e) { setError("Connection issue — please try again."); }
     setLoading(false);
   }
@@ -426,26 +434,44 @@ export default function ProfessorPage() {
       <button className="theme-toggle" onClick={function(){setDarkMode(function(d){return !d;})}}>{darkMode?"☀":"☾"}</button>
       <div className="header">
         <h1>Professor Dashboard</h1>
-        <p>{sessions.length} sessions across {students.length} students</p>
+        <p>{sessions.length} sessions · {allStudents.length} registered student{allStudents.length !== 1 ? "s" : ""}</p>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"0.75rem"}}>
-        {students.map(function(student){
-          const studentSessions = sessions.filter(function(s){return s.student_name===student;});
-          const lastSession = studentSessions[0];
-          const modalities = [...new Set(studentSessions.map(function(s){return s.modality;}))];
-          return (
-            <button key={student} onClick={function(){setSelectedStudent(student);}}
-              className="card"
-              style={{textAlign:"left",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}
-              onMouseOver={function(e){e.currentTarget.style.borderColor="var(--accent)";e.currentTarget.style.boxShadow="0 0 0 3px var(--accent-light)";}}
-              onMouseOut={function(e){e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.boxShadow="var(--shadow)";}}>
-              <div style={{fontWeight:600,fontSize:"0.95rem",color:"var(--text)",marginBottom:"0.35rem"}}>{student}</div>
-              <div style={{fontSize:"0.78rem",color:"var(--text2)",marginBottom:"0.5rem"}}>{studentSessions.length} session{studentSessions.length!==1?"s":""} · {modalities.slice(0,2).join(", ")}{modalities.length>2?" +"+( modalities.length-2)+" more":""}</div>
-              {lastSession&&<div style={{fontSize:"0.72rem",color:"var(--text3)"}}>Last: {new Date(lastSession.date).toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"})}</div>}
-            </button>
-          );
-        })}
-      </div>
+      {/* Merge allStudents with session data so zero-session users appear */}
+      {(function() {
+        const sessionStudents = [...new Set(sessions.map(function(s){return s.student_name;}))];
+        const registeredNames = allStudents.map(function(s){return s.name;});
+        const allNames = [...new Set([...registeredNames, ...sessionStudents])].sort();
+
+        return (
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"0.75rem"}}>
+            {allNames.map(function(student){
+              const studentSessions = sessions.filter(function(s){return s.student_name===student;});
+              const lastSession = studentSessions[0];
+              const modalities = [...new Set(studentSessions.map(function(s){return s.modality;}))];
+              const registered = allStudents.find(function(s){return s.name===student;});
+              const hasNoSessions = studentSessions.length === 0;
+              return (
+                <button key={student} onClick={function(){setSelectedStudent(student);}}
+                  className="card"
+                  style={{textAlign:"left",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s",opacity: hasNoSessions ? 0.75 : 1}}
+                  onMouseOver={function(e){e.currentTarget.style.borderColor="var(--accent)";e.currentTarget.style.boxShadow="0 0 0 3px var(--accent-light)";}}
+                  onMouseOut={function(e){e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.boxShadow="var(--shadow)";}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.35rem"}}>
+                    <div style={{fontWeight:600,fontSize:"0.95rem",color:"var(--text)"}}>{student}</div>
+                    {hasNoSessions && <span style={{fontSize:"0.68rem",padding:"2px 8px",borderRadius:20,background:"var(--surface2)",color:"var(--text3)",border:"1px solid var(--border)"}}>No sessions yet</span>}
+                  </div>
+                  <div style={{fontSize:"0.78rem",color:"var(--text2)",marginBottom:"0.35rem"}}>
+                    {studentSessions.length} session{studentSessions.length!==1?"s":""}
+                    {modalities.length > 0 && " · " + modalities.slice(0,2).join(", ") + (modalities.length>2?" +"+(modalities.length-2)+" more":"")}
+                  </div>
+                  {registered && <div style={{fontSize:"0.7rem",color:"var(--text3)"}}>First seen: {new Date(registered.first_seen).toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"})}</div>}
+                  {lastSession && <div style={{fontSize:"0.7rem",color:"var(--text3)"}}>Last session: {new Date(lastSession.date).toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"})}</div>}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })()}
     </div>
   );
 }
