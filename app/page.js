@@ -804,11 +804,11 @@ function WelcomeScreen({ studentName, onContinue, onHistory }) {
 // ── SETUP ─────────────────────────────────────────────────────
 function SetupScreen({ studentName, onStart, onHistory }) {
   const [mode, setMode] = useState("group");
-  const [gModality, setGModality] = useState("");
+  const [gModality, setGModality] = useState("General Practice — No Specific Modality");
   const [gRole, setGRole] = useState("therapist");
   const [gSessionType, setGSessionType] = useState("intake");
   const [gIntention, setGIntention] = useState("");
-  const [sModality, setSModality] = useState("");
+  const [sModality, setSModality] = useState("General Practice — No Specific Modality");
   const [sIssue, setSIssue] = useState("Randomised — surprise me");
   const [sRespMode, setSRespMode] = useState("voice");
   const [sSessionType, setSSessionType] = useState("intake");
@@ -816,7 +816,7 @@ function SetupScreen({ studentName, onStart, onHistory }) {
 
   function handleStart() {
     if (mode === "group") {
-      if (!gModality) { alert("Please select a modality."); return; }
+      if (!gModality) { alert("Please select a modality."); return; } // kept for safety
       onStart({ mode: "group", modality: gModality, role: gRole, sessionType: gSessionType, studentName, intention: gIntention });
     } else if (mode === "solo") {
       if (!sModality) { alert("Please select a modality."); return; }
@@ -878,7 +878,6 @@ function SetupScreen({ studentName, onStart, onHistory }) {
             <div className="field">
               <label>Modality being practised</label>
               <select value={gModality} onChange={function(e) { setGModality(e.target.value); }}>
-                <option value="">Select modality...</option>
                 {MODALITIES.map(function(m) { return <option key={m}>{m}</option>; })}
               </select>
             </div>
@@ -910,7 +909,6 @@ function SetupScreen({ studentName, onStart, onHistory }) {
             <div className="field">
               <label>Modality to practise</label>
               <select value={sModality} onChange={function(e) { setSModality(e.target.value); }}>
-                <option value="">Select modality...</option>
                 {MODALITIES.map(function(m) { return <option key={m}>{m}</option>; })}
               </select>
             </div>
