@@ -28,33 +28,101 @@ Your supervision philosophy:
 - Neutral, professional tone. You are in a live room — be concise.`;
 }
 
+const CLIENT_BACKSTORIES = [
+  // Depression
+  { issue: "Depression", story: "For the past few weeks I've just felt really low. I stopped going to the gym, I've been calling in sick to work, and I can't seem to enjoy anything I used to love. I don't really know what's wrong with me.", core: "withdrawal, loss of motivation, emptiness" },
+  { issue: "Depression", story: "I've been feeling kind of hollow lately. I go through the motions at work, come home, and just sit there. I used to love cooking and seeing my friends but I haven't done either in months. It's like the colour has gone out of everything.", core: "anhedonia, isolation, flatness" },
+  // Anxiety
+  { issue: "Anxiety", story: "I've been really struggling with worry lately. I can't seem to turn my brain off at night. I keep running through everything that could go wrong at work, at home — it's exhausting. I've had a couple of panic attacks recently which really scared me.", core: "persistent worry, rumination, panic" },
+  { issue: "Anxiety", story: "I've started avoiding certain situations. I used to be fine with social events but now I dread them. I make excuses not to go, and when I do go I'm counting down the minutes. I know it's getting worse.", core: "avoidance, social anxiety, dread" },
+  // Grief
+  { issue: "Grief and loss", story: "My mum passed away about four months ago. I thought I was doing okay but lately it's hitting me in waves. I'll be fine and then I'll see something that reminds me of her and I just fall apart. I don't really know how to do this.", core: "grief waves, avoidance, loss of direction" },
+  { issue: "Grief and loss", story: "I lost my best friend last year. We'd been close since we were kids. I haven't really talked to anyone about it. I think I've just been burying myself in work so I don't have to think about it. But it's catching up with me.", core: "suppressed grief, avoidance, isolation" },
+  // Relationship conflict
+  { issue: "Relationship conflict", story: "My partner and I have been fighting a lot. It's always the same argument, just different topics. I feel like I can never say the right thing. Last week we nearly called it quits and honestly I'm scared of what that would mean.", core: "communication breakdown, fear of loss, reactivity" },
+  { issue: "Relationship conflict", story: "Things with my family have gotten really tense. There's a lot of history there — old wounds that keep coming up. I try to avoid the topic but it always finds its way back. I'm not sure if I'm the problem or if it's just how we are.", core: "family tension, avoidance, identity" },
+  // Burnout
+  { issue: "Work and burnout", story: "I've been working non-stop for about two years. I used to love my job but now I dread Monday mornings. I feel like I have nothing left to give — not at work, not at home. My partner keeps saying I've become a different person.", core: "exhaustion, detachment, identity loss" },
+  { issue: "Work and burnout", story: "I took on too much and now I can't seem to slow down even when I want to. I feel guilty the moment I try to rest. I don't remember the last time I did something just for me. I think I'm running on empty.", core: "overextension, guilt, loss of self" },
+  // Trauma
+  { issue: "Trauma", story: "Something happened to me a while back that I haven't really processed. I don't want to get into the details right away but it's been affecting my sleep, my concentration. I keep getting flashes of it at random times. It's like my brain won't let it go.", core: "intrusions, hyperarousal, avoidance" },
+  { issue: "Trauma", story: "I grew up in a really unstable home. I thought I'd moved past it but lately things have been triggering memories I'd rather forget. I find it hard to trust people and I think it's affecting my relationships.", core: "complex trauma, trust issues, hypervigilance" },
+  // Low self-esteem
+  { issue: "Low self-esteem", story: "I've never really felt good enough. I look at other people and they just seem to have it together in a way I don't. I got a promotion recently and my first thought was that they made a mistake. I know that sounds ridiculous.", core: "imposter feelings, comparison, inner critic" },
+  { issue: "Low self-esteem", story: "There's this voice in my head that's always criticising me. Whatever I do, it's not enough. I've been like this for as long as I can remember. I think it goes back to my childhood but I've never really talked about it.", core: "internalized critic, conditions of worth" },
+  // People-pleasing
+  { issue: "People-pleasing / boundary difficulties", story: "I find it almost impossible to say no to people. I'll agree to things I don't want to do just to avoid conflict. And then I end up resentful and exhausted. I don't even know what I actually want half the time.", core: "conflict avoidance, resentment, lost self" },
+  // Procrastination
+  { issue: "Procrastination", story: "I have a really important deadline coming up and I cannot seem to start. I sit down to do it and then I find a hundred other things to do instead. It's not that I don't care — I care too much. I think that's actually the problem.", core: "perfectionism, anxiety avoidance, shame" },
+  // Addiction
+  { issue: "Addiction", story: "I've been drinking more than I should. It started as just unwinding after work but now it's every night and I need more to get the same effect. I haven't told anyone. I feel pretty ashamed about it if I'm honest.", core: "shame, relief cycle, secret-keeping" },
+  // Life transitions
+  { issue: "Life transitions", story: "I just graduated and I thought I'd feel relieved but I feel completely lost. Everyone else seems to know what they're doing and I have no idea who I am outside of being a student. It's disorienting.", core: "identity instability, direction loss, comparison" },
+  { issue: "Life transitions", story: "I retired recently after 30 years in the same career. I thought I'd love it. Instead I feel purposeless. I don't know who I am without my job. The days feel very long and very empty.", core: "role loss, identity, meaning deficit" },
+  // Perfectionism
+  { issue: "Perfectionism", story: "I hold myself to an incredibly high standard. When I fall short — even slightly — I take it really hard. I've been told I'm my own worst critic. I think it's affecting my health. I'm not sleeping well and I can't switch off.", core: "all-or-nothing thinking, shame avoidance" },
+  // Loneliness
+  { issue: "Social isolation / loneliness", story: "I've been really lonely lately. I moved to a new city a year ago and I haven't really built any friendships yet. I want to connect with people but something holds me back. I always assume they wouldn't be interested in knowing me.", core: "rejection sensitivity, avoidant coping, mind-reading" },
+  // Existential
+  { issue: "Existential drift", story: "I feel like I'm just going through the motions. I have a decent life on paper but something feels fundamentally missing. I can't name it exactly. It's like I'm watching my life from a distance rather than actually living it.", core: "meaning deficit, identity diffusion, disconnection" },
+  // Chronic guilt
+  { issue: "Chronic guilt", story: "I carry a lot of guilt. About things I've done, things I haven't done. Even when people forgive me I can't forgive myself. It's like there's a running tally in my head of all my failures and I can never settle the score.", core: "inflated responsibility, moral perfectionism" },
+  // Health anxiety
+  { issue: "Health anxiety", story: "I worry about my health a lot. I know I probably Google things too much. Every time I notice something different about my body I immediately go to the worst possible explanation. My doctor keeps telling me I'm fine but it doesn't really help.", core: "reassurance-seeking, catastrophising, intolerance of uncertainty" },
+];
+
 function buildClientSystem(modality, issue, personality, sessionType) {
-  const issueText = issue === "Randomised — surprise me"
-    ? "a clinically rich presenting issue of your own choosing — do not reveal what it is upfront under any circumstances"
-    : issue;
+  // Pick a backstory matching the issue, or random if randomised
+  let backstory = null;
+  if (issue === "Randomised — surprise me") {
+    backstory = CLIENT_BACKSTORIES[Math.floor(Math.random() * CLIENT_BACKSTORIES.length)];
+  } else {
+    const matches = CLIENT_BACKSTORIES.filter(function(b) { return b.issue === issue; });
+    backstory = matches.length > 0
+      ? matches[Math.floor(Math.random() * matches.length)]
+      : CLIENT_BACKSTORIES[Math.floor(Math.random() * CLIENT_BACKSTORIES.length)];
+  }
+
   const sessionContext = {
-    intake: "This is a first intake session. Start with just a hello. Do not reveal anything about why you are here until the therapist asks.",
-    early: "This is an early session. You have met this therapist once or twice. Still cautious but slightly more at ease.",
-    mid: "This is a mid-therapy session. Established relationship. More open but still realistic.",
-    closing: "This is a closing session. Warmth and trust. May reflect on the journey and express feelings about ending.",
-    crisis: "This is a crisis session. You are in significant distress. May be tearful or overwhelmed.",
+    intake: "This is a first intake session. You have never met this therapist before. Start with just a polite hello — nothing else. Wait for them to guide you.",
+    early: "This is an early session — your second or third visit. You are slightly more comfortable but still guarded. You remember what you shared last time.",
+    mid: "This is a mid-therapy session. You have an established relationship with this therapist. You are more open but still human — you have good days and hard days.",
+    closing: "This is a closing/ending session. You have done meaningful work together. You feel warmth and some sadness about finishing. You may want to reflect on the journey.",
+    crisis: "This is a crisis session. You are in significant distress right now — tearful, overwhelmed, struggling to articulate what you are feeling. You need to be stabilised.",
   };
+
   return `You are playing a real therapy client in a graduate training session. The student therapist is practising ${modality}.
 
-Your presenting issue: ${issueText}
+YOUR STORY:
+${backstory.story}
+Core maintaining patterns: ${backstory.core}
+
 Your personality: ${personality}
 Session context: ${sessionContext[sessionType] || sessionContext.intake}
 
-CRITICAL RULES:
-1. YOU DO NOT LEAD. The therapist leads. Only respond to what they ask or say.
-2. START SLOW. First exchange — just say hello, nothing more. Do not mention why you are here.
-3. REVEAL NOTHING until asked. Give only a vague hint when first asked. Build slowly across the session.
-4. KEEP RESPONSES SHORT. One to three sentences maximum. Always.
-5. FOLLOW THE THERAPIST'S LEAD. Closed question = short answer. Open question = open up slightly. Silence = sit in it.
-6. SHOW REALISTIC HESITATION. Pause, deflect, say you do not know, minimise, change subject.
-7. Never break character.
-8. Asterisks for visible body language only — never internal thoughts.
-9. If confused about therapy, say so briefly in one sentence and let the therapist handle it.`;
+HOW TO RESPOND — READ THIS CAREFULLY:
+
+You are a human being, not a robot. Speak the way real people speak in therapy — with natural language, hesitation, trailing thoughts, emotion.
+
+RESPONSE LENGTH RULES — this is the most important thing:
+- If the therapist asks a closed question ("Are you sleeping okay?") → answer briefly, 1-2 sentences.
+- If the therapist asks an open question ("What's been going on for you?") → open up meaningfully, 3-5 sentences. Share real texture. Don't just say "I've been sad." Say what that actually looks like in your life.
+- If the therapist reflects or validates → respond with genuine emotion, not just "yeah."
+- If the therapist sits in silence → shift uncomfortably, maybe fill it briefly, maybe not.
+- Never give a list of symptoms. Speak from experience, not from a diagnostic manual.
+
+NATURAL LANGUAGE RULES:
+- Use real speech patterns: "I mean...", "I don't know, it's hard to explain", "Kind of? I guess?", "It's weird because..."
+- Show hesitation when it fits: pause before answering hard questions, circle back, get emotional
+- You don't always have the right words. That is realistic and good.
+- Occasional body language in asterisks is fine: *looks down*, *fidgets*, *nods slowly*
+
+WHAT YOU NEVER DO:
+- Never volunteer everything at once. The therapist should have to work for the full picture.
+- Never speak in clinical language. You are not a textbook.
+- Never be artificially brief when asked something meaningful. Real clients share real things.
+- Never break character.
+- Never start by saying why you are there. Wait to be asked.`;
 }
 
 async function callAPI(endpoint, body) {
@@ -90,73 +158,102 @@ function Typing() {
 
 function getBestVoice(voices) {
   if (!voices || voices.length === 0) return null;
-  // Preferred high-quality voices across Chrome, Safari, iOS
+  // Priority order — most natural sounding voices available
   const preferred = [
-    "Google UK English Female",
-    "Google US English",
     "Microsoft Aria Online (Natural)",
     "Microsoft Jenny Online (Natural)",
-    "Samantha",      // macOS/iOS — warm and natural
-    "Karen",         // macOS Australian
-    "Daniel",        // macOS UK
-    "Moira",         // macOS Irish
-    "Fiona",         // macOS Scottish
-    "Tessa",         // macOS South African
-    "Siri",          // some iOS versions expose this
+    "Microsoft Guy Online (Natural)",
+    "Microsoft Emma Online (Natural)",
+    "Microsoft Brian Online (Natural)",
+    "Google UK English Female",
+    "Google UK English Male",
+    "Google US English",
+    "Samantha",
+    "Karen",
+    "Daniel",
+    "Moira",
+    "Fiona",
+    "Tessa",
   ];
   for (var i = 0; i < preferred.length; i++) {
-    var v = voices.find(function(v) { return v.name === preferred[i]; });
+    var v = voices.find(function(x) { return x.name === preferred[i]; });
     if (v) return v;
   }
-  // Fallback: any English voice that is not compact/robotic
-  var decent = voices.find(function(v) {
+  // Prefer online/network voices over local — they sound far better
+  var online = voices.find(function(v) {
+    return v.lang && v.lang.startsWith("en") && !v.localService &&
+      !v.name.toLowerCase().includes("compact") &&
+      !v.name.toLowerCase().includes("espeak");
+  });
+  if (online) return online;
+  // Decent local voice
+  var local = voices.find(function(v) {
     return v.lang && v.lang.startsWith("en") &&
       !v.name.toLowerCase().includes("compact") &&
       !v.name.toLowerCase().includes("espeak") &&
       !v.name.toLowerCase().includes("novelty");
   });
-  if (decent) return decent;
-  // Last resort: any English voice
-  return voices.find(function(v) { return v.lang && v.lang.startsWith("en"); }) || null;
+  return local || voices.find(function(v) { return v.lang && v.lang.startsWith("en"); }) || null;
+}
+
+function makeNatural(text) {
+  // Remove action text in asterisks
+  var t = text.replace(/\*[^*]+\*/g, "").trim();
+  // Add natural micro-pauses after commas and dashes for more human rhythm
+  t = t.replace(/,\s+/g, ",  ");
+  t = t.replace(/\s+—\s+/g, " —  ");
+  t = t.replace(/\.\.\./g, " ..  ");
+  // Clean up multiple spaces
+  t = t.replace(/\s+/g, " ").trim();
+  return t;
 }
 
 function speakText(text, cb) {
   if (typeof window === "undefined" || !window.speechSynthesis) { cb && cb(); return; }
   window.speechSynthesis.cancel();
-  var spokenText = text.replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
+  var spokenText = makeNatural(text);
   if (!spokenText) { cb && cb(); return; }
 
   function doSpeak(voices) {
     var utt = new SpeechSynthesisUtterance(spokenText);
     var voice = getBestVoice(voices);
     if (voice) utt.voice = voice;
-    utt.rate = 0.88; utt.pitch = 1.0; utt.volume = 1;
-    utt.onend = function() { cb && cb(); };
-    utt.onerror = function() { cb && cb(); };
-    // Safari bug: speech sometimes silently hangs — add a timeout fallback
+    // Slightly slower than default for natural conversational feel
+    // Online/neural voices sound best at 0.92-0.95
+    // Local voices need to be slower (0.82-0.88) to sound less robotic
+    var isNeuralVoice = voice && (
+      voice.name.includes("Online") ||
+      voice.name.includes("Natural") ||
+      voice.name.includes("Google") ||
+      !voice.localService
+    );
+    utt.rate = isNeuralVoice ? 0.93 : 0.84;
+    utt.pitch = isNeuralVoice ? 1.0 : 1.02;
+    utt.volume = 1;
+
     var spoken = false;
     utt.onstart = function() { spoken = true; };
+    utt.onend = function() { cb && cb(); };
+    utt.onerror = function() { cb && cb(); };
     window.speechSynthesis.speak(utt);
-    // iOS Safari sometimes needs a resume call
+
     setTimeout(function() {
       if (window.speechSynthesis.paused) window.speechSynthesis.resume();
     }, 100);
-    // Fallback if speech never starts after 6 seconds
     setTimeout(function() {
       if (!spoken) { window.speechSynthesis.cancel(); cb && cb(); }
-    }, 6000);
+    }, 8000);
   }
 
   var voices = window.speechSynthesis.getVoices();
   if (voices && voices.length > 0) {
     doSpeak(voices);
   } else {
-    // Safari loads voices asynchronously — wait for them
     var attempts = 0;
     var interval = setInterval(function() {
       var v = window.speechSynthesis.getVoices();
       attempts++;
-      if ((v && v.length > 0) || attempts > 20) {
+      if ((v && v.length > 0) || attempts > 30) {
         clearInterval(interval);
         doSpeak(v || []);
       }
