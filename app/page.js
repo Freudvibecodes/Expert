@@ -1360,7 +1360,16 @@ export default function Home() {
   const [finalTranscript, setFinalTranscript] = useState("");
   const [finalDuration, setFinalDuration] = useState(0);
 
-  function handleName(name, action) { setStudentName(name); if (action === "history") setScreen("history"); else setScreen("welcome"); }
+  function handleName(name, action) {
+    setStudentName(name);
+    // Update last_seen on every login
+    fetch("/api/students", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    }).catch(function() {});
+    if (action === "history") setScreen("history"); else setScreen("welcome");
+  }
   function handleStart(cfg) { setConfig(cfg); setScreen(cfg.mode); }
   function handleEnd(transcript, duration) { setFinalTranscript(transcript); setFinalDuration(duration || 0); setScreen("review"); }
   function handleReset() { setConfig(null); setFinalTranscript(""); setFinalDuration(0); setScreen("welcome"); }
