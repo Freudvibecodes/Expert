@@ -1179,6 +1179,9 @@ function SoloScreen({ config, onEnd }) {
   const [talking, setTalking] = useState(false);
   const [clientReady, setClientReady] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [helpText, setHelpText] = useState(null);
+  const [helpLoading, setHelpLoading] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const recRef = useRef(null);
   const respondingRef = useRef(false);
@@ -1204,6 +1207,38 @@ function SoloScreen({ config, onEnd }) {
   function startTimer() {
     startTimeRef.current = Date.now();
     timerRef.current = setInterval(function() { setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000)); }, 1000);
+  }
+
+  async function getHelp() {
+    if (helpLoading) return;
+    setShowHelp(true);
+    setHelpLoading(true);
+    setHelpText(null);
+    const transcript = convRef.current.map(function(l) {
+      return (l.role === "therapist" ? "Therapist: " : "Client: ") + l.text;
+    }).join("\n");
+    const system = `You are a clinical supervisor sitting beside a graduate therapy student during a live solo practice session. The student has clicked the Help button — they are stuck and need a brief nudge.
+
+Modality being practised: ${config.modality}
+Session type: ${config.sessionType || "intake"}
+
+Read the session so far and give the student ONE concise piece of guidance. Be Socratic — do not tell them what to say. Instead:
+- Name what you notice in the session right now (a theme, an emotion, a pattern)
+- Ask one question that helps them think about where to go next
+- Or name a specific technique from their modality that might fit this moment
+
+Keep it to 3 sentences maximum. Be warm and specific. Reference what was actually said.`;
+
+    try {
+      const reply = await callAPI("/api/chat", {
+        system,
+        messages: [{ role: "user", content: "Session so far:\n\n" + (transcript || "(session just started — client has just said hello)") + "\n\nI'm not sure where to go from here. What should I be thinking about?" }],
+      });
+      setHelpText(reply);
+    } catch(e) {
+      setHelpText("Connection issue — please try again.");
+    }
+    setHelpLoading(false);
   }
 
   function toggleMute() {
@@ -1322,6 +1357,11 @@ function SoloScreen({ config, onEnd }) {
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <div style={{ fontSize: "0.85rem", color: "var(--text3)", fontVariantNumeric: "tabular-nums" }}>{formatDuration(elapsed)}</div>
             <button className="btn btn-sm" onClick={toggleMute}>{muted ? "Unmute mic" : "Mute mic"}</button>
+            <button className="btn btn-sm" onClick={getHelp}
+              style={{ background: "var(--accent2-light)", borderColor: "var(--accent2)", color: "var(--accent2)", fontWeight: 500 }}
+              disabled={helpLoading}>
+              {helpLoading ? "..." : "Help"}
+            </button>
             <button className="btn btn-sm danger" onClick={handleEnd}>End session</button>
           </div>
         </div>
@@ -1341,6 +1381,18 @@ function SoloScreen({ config, onEnd }) {
           </div>
         )}
       </div>
+      {showHelp && (
+        <div className="card" style={{ borderLeft: "3px solid var(--accent2)", background: "var(--accent2-light)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--accent2)" }}>Supervisor</div>
+            <button onClick={function() { setShowHelp(false); setHelpText(null); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: "1rem", lineHeight: 1 }}>✕</button>
+          </div>
+          {helpLoading && <div className="typing"><div className="tdot" /><div className="tdot" /><div className="tdot" /></div>}
+          {helpText && <div style={{ fontSize: "0.9rem", lineHeight: 1.8, color: "var(--text)" }}>{helpText}</div>}
+        </div>
+      )}
+
       <div className="card">
         <div className="section-label">Session conversation</div>
         <div className="transcript-wrap" ref={convBoxRef}>
