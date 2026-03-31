@@ -1,4 +1,5 @@
 export const MODALITIES = [
+  "General Practice — No Specific Modality",
   "SFBT","CBT","Narrative Therapy","Adlerian Therapy","Structural Family Therapy",
   "Person-Centred Therapy","DBT","ACT","Psychodynamic Therapy","EFT","Gestalt Therapy",
   "Motivational Interviewing","EMDR","Schema Therapy","Existential Therapy","Integrative","Other",
