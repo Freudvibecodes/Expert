@@ -60,7 +60,7 @@ YOU MUST respond using ONLY the exact JSON format below. Do not add any text bef
     {"name": "Modality adherence", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "..."},
     {"name": "Intervention quality and technique execution", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "..."},
     {"name": "Pacing", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "..."},
-    {"name": "Use of silence", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "..."},
+
     {"name": "Question types (open vs closed, timing)", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "..."},
     {"name": "Minimal encouragers", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "..."},
     {"name": "Paraphrasing", "rating": "Strong|Developing|Needs Work|N/A", "evidence": "..."},
